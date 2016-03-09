@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,23 +25,56 @@ public class ClientSocket {
     DataOutputStream out;
     
     JPoints jp= new JPoints();
-    
+    LinkedList<String> fifo = new LinkedList<String>();
+    public void flush(){
+    	try {
+			out.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    boolean flgCom = false;
     public ClientSocket() {
     	 time.schedule(new TimerTask() {
  	        @Override
  	        public void run() { //ÏÅÐÅÇÀÃÐÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎÐÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
  	        	if (flgOpenSocket){
+ 	        		
  	        	   if (!socket.isConnected()){
  	        		   Custom.showMessage("Client disconnected");
  	        		   closeSocket();
  	        	   }else
  	        	   try {
- 	        		   boolean flgEnable = true;
- 	        		   while(flgOpenSocket&&in.available()!=0){	        			   
- 						   byte b = in.readByte();
- 						   System.out.print((char)b);
+ 	        		   if(flgOpenSocket){
+ 	        			 /* if (!fifo.isEmpty()){
+ 	        				  test();  
+ 	        				  try {
+								Thread.sleep(50);
+								
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+ 	        			   }*/
+ 	        			   while(in.available()!=0){	        			   
+ 	        				   char b = (char)in.readByte();
+ 	        				  /* if (b=='c'){
+ 	        					   flgCom = true;
+ 	        				   }else if (b>='0'&&b<='9'&&flgCom){
+ 	        					   flgCom = false;
+ 	        					   int com = (byte)b-(byte)'0';
+ 	        					   switch (com) {
+ 							   		case 0:
+ 							  //		if (!fifo.isEmpty())
+ 							   	//			sendPackage(fifo.removeFirst());
+ 							   		break;
+ 	        					   }
+ 	        				   }*/
+ 	        				   System.out.print(b);
+ 	        			   }
+ 	        			   
  	        		   }
- 	        		   
  	        	   } catch (IOException e) {
  	        		   e.printStackTrace();
  	        	   }
@@ -61,16 +95,40 @@ public class ClientSocket {
 			sendPackage(s);
 		}
 	}
+	void sendVals(int []iVal){
+		if(flgOpenSocket){
+			String s="";
+			for(int i=0;i<9;i++)
+				s+=(char)((byte)'a'+i)+Custom.getVali(iVal[i],6);			
+			s+="/";
+			sendPackage(s);
+		}
+	}
+	void sendVals2(int []iVal){
+		if(flgOpenSocket){
+			String s="";
+			for(int i=0;i<9;i++)
+				s+=Custom.getVali(iVal[i],6)+" ";			
+			//s+="/";
+			sendPackage(s);
+		}
+	}
 	void sendPackage(String s){
 		try {
+			
 			for (int i=0;i<s.length();i++){
 				out.writeByte((byte)s.charAt(i));	
 			}	
-			out.flush();
+		    
+			
+			//out.writeUTF(s);
+			
+			//System.out.println(s);
+			
 		} catch (IOException e) {
 			System.out.println("IO Error");
 			e.printStackTrace();
-		}
+		} 
 	}
 	void openSocket(String adress,String port){
 	    try {
@@ -118,6 +176,18 @@ public class ClientSocket {
 	}
 	public void clearJPoints(){
 		jp.clear();
+	}
+	public void test(){
+		if(flgOpenSocket)
+		try {
+			for (int i=0;i<4;i++){
+				out.writeByte((byte)'b');	
+			}	
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("IO Error");
+			e.printStackTrace();
+		} 
 	}
 
 }

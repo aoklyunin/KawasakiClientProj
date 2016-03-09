@@ -4,14 +4,20 @@ import javax.swing.JOptionPane;
 public class Custom {
 	public static String getVali(int i,int ln){
 			String s = Integer.toString(i);
+			String minusS = "";
+			if (i<0){
+				s = s.substring(1,s.length());
+				minusS = "-";
+			}
+				
 			String tmpS = "";
 			if (s.length()<ln){
 				for (int j=s.length();j<ln;j++)
 					tmpS = tmpS+"0";
-				return tmpS+s;
+				return minusS+tmpS+s;
 			}else if( s.length()>ln){
-				return s.substring(0, ln);
-			}else return s;
+				return minusS+s.substring(0, ln);
+			}else return minusS+s;
 		}
 	  public static String getVald(double d){
 			String s = Double.toString(d);

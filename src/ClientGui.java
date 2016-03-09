@@ -29,9 +29,12 @@ public class ClientGui extends JFrame {
 	private JButton btnAddJPoint = new JButton("AddPoint");
 	private JButton btnSendJPoinst = new JButton("SendJPoint");
 	private JButton btnClearJPoinst = new JButton("ClearPoint");
+	private JButton btnInitInputs = new JButton("InitInputs");
+	
+	private JButton btnTest = new JButton("Test");
 	
 	private JTextField portSocet = new JTextField("40000", 5);
-	private JTextField adressSocket = new JTextField("192.168.0.79", 8);
+	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
 	public JTextField [] inputs = new JTextField[inputsCnt];
 	public JButton [] buttons = new JButton[10];
 	private JLabel ipLabel = new JLabel();
@@ -80,6 +83,18 @@ public class ClientGui extends JFrame {
 				client.openSocket(adressSocket.getText(),portSocet.getText());
 			}	    	
 	    });
+	    // кнопка тест
+    	packagePage.add(btnTest);
+	    size = btnTest.getPreferredSize(); 
+	    btnTest.setBounds(560+ insets.left, 10 + insets.top, 
+                     	 size.width, size.height); 
+	    btnTest.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.test();
+			}	    	
+	    });
+	    
 	    // кнопка отправки пакета
 	    packagePage.add(btnSendPackage);
 	    size = btnSendPackage.getPreferredSize(); 
@@ -102,6 +117,20 @@ public class ClientGui extends JFrame {
 				clearInputs();
 			}	    	
 	    });
+	    // кнопка очистки полей ввода
+	    packagePage.add(btnInitInputs);
+	    size = btnInitInputs.getPreferredSize(); 
+	    btnInitInputs.setBounds(520 + insets.left, 40 + insets.top, 
+                     	 size.width, size.height); 
+	    btnInitInputs.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				for (int i=0;i<45;i++){
+					inputs[i].setText(i+"");
+				}
+			}	    	
+	    });
+	    
 	    // IP Адрес
 		try {
 			InetAddress IP = InetAddress.getLocalHost();
@@ -204,27 +233,32 @@ public class ClientGui extends JFrame {
 	void defPackage(){
 		//int iArr[] = {242,3423,5212};
 		//double fArr[] = {123.7821,4234.0,123.12,23589.2,2344092.124879,532.129};
-		int iArr[] = new int[3];
+		int iArr[] = new int[9];
 		double fArr[] = new double[6];
+		client.flush();
 		for (int i=0;i<inputsCnt/9;i++){
 			boolean flgTyped = false;
 			for (int j=0;j<9;j++)
 				if(!inputs[i*9+j].getText().equals(""))
 					flgTyped = true;
 			if (flgTyped){
-				for (int j=0;j<3;j++)
+				for (int j=0;j<9;j++)
 					if(inputs[i*9+j].getText().equals(""))
 						iArr[j]=0;
-					else
+					else{
+						//System.out.println(inputs[i*9+j].getText());
 						iArr[j]=Integer.parseInt(inputs[i*9+j].getText());
+					}
 				for (int j=3;j<9;j++)
 					if(inputs[i*9+j].getText().equals(""))
 						fArr[j-3]=0;
 					else
 						fArr[j-3]=Double.parseDouble(inputs[i*9+j].getText());
-				client.sendVals(iArr,fArr);
+				//client.sendVals(iArr,fArr);
+				client.sendVals2(iArr);
 			}		
 		}
+		
 	}
 	
 	
