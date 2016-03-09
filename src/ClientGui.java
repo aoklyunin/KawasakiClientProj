@@ -29,15 +29,23 @@ public class ClientGui extends JFrame {
 	private JButton btnAddJPoint = new JButton("AddPoint");
 	private JButton btnSendJPoinst = new JButton("SendJPoint");
 	private JButton btnClearJPoinst = new JButton("ClearPoint");
+	private JButton btnInitInputs = new JButton("InitInputs");
+	
+	private JButton btnTest = new JButton("Test");
+	
+	private JButton btnSendPosition = new JButton("SendPosition");
 	
 	private JTextField portSocet = new JTextField("40000", 5);
-	private JTextField adressSocket = new JTextField("192.168.0.79", 8);
+	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
 	public JTextField [] inputs = new JTextField[inputsCnt];
 	public JButton [] buttons = new JButton[10];
 	private JLabel ipLabel = new JLabel();
 	
 	private JSlider [] sliders = new JSlider[6];
 	private JLabel[] slederLables = new JLabel[6];
+	
+	private JSlider [] slidersPos = new JSlider[3];
+	private JLabel[] sledersPosLables = new JLabel[3];
 	
 	final JTabbedPane tabbedPane = new JTabbedPane();
 	ClientSocket client;
@@ -80,6 +88,18 @@ public class ClientGui extends JFrame {
 				client.openSocket(adressSocket.getText(),portSocet.getText());
 			}	    	
 	    });
+	    // кнопка тест
+    	packagePage.add(btnTest);
+	    size = btnTest.getPreferredSize(); 
+	    btnTest.setBounds(560+ insets.left, 10 + insets.top, 
+                     	 size.width, size.height); 
+	    btnTest.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.test();
+			}	    	
+	    });
+	    
 	    // кнопка отправки пакета
 	    packagePage.add(btnSendPackage);
 	    size = btnSendPackage.getPreferredSize(); 
@@ -102,6 +122,20 @@ public class ClientGui extends JFrame {
 				clearInputs();
 			}	    	
 	    });
+	    // кнопка очистки полей ввода
+	    packagePage.add(btnInitInputs);
+	    size = btnInitInputs.getPreferredSize(); 
+	    btnInitInputs.setBounds(520 + insets.left, 40 + insets.top, 
+                     	 size.width, size.height); 
+	    btnInitInputs.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				for (int i=0;i<45;i++){
+					inputs[i].setText(i+"");
+				}
+			}	    	
+	    });
+	    
 	    // IP Адрес
 		try {
 			InetAddress IP = InetAddress.getLocalHost();
@@ -185,6 +219,50 @@ public class ClientGui extends JFrame {
 	    }
 	    
     }
+    
+    public void createPositionPage(){    
+    	Container positionPage = new JPanel();
+    	positionPage.setLayout(null);
+    	Insets insets = positionPage.getInsets();
+    	tabbedPane.addTab("Джоинды" ,positionPage);
+    	 // кнопка отправки точек на контроллер
+    	positionPage.add(btnSendPosition);
+    	Dimension size = btnSendPosition.getPreferredSize(); 
+    	btnSendPosition.setBounds(300 + insets.left, 50 + insets.top, 
+	    					     100, size.height); 
+    	btnSendPosition.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.sendPositionPoints();
+			}	    	
+	    });
+	
+    	sledersPosLables[0] = new JLabel("x");
+    	sledersPosLables[1] = new JLabel("y");
+    	sledersPosLables[2] = new JLabel("z");
+	    // слайдеры
+	    for (int i=0;i<3;i++){
+	    	slidersPos[i] = new JSlider(-360, 360, 0);
+	    	positionPage.add(sliders[i]);
+	    	slidersPos[i].setMajorTickSpacing(120);
+	    	slidersPos[i].setMinorTickSpacing(30);
+	    	slidersPos[i].setPaintLabels(true);
+	    	slidersPos[i].setPaintTicks(true);
+	    	slidersPos[i].setPaintTrack(true);
+	    	slidersPos[i].setAutoscrolls(true);
+	    	size = slidersPos[i].getPreferredSize(); 
+	    	slidersPos[i].setBounds(30 + insets.left, 15+i*50 + insets.top, 
+                     	 230, size.height);
+	    	size = sledersPosLables[i].getPreferredSize(); 
+	    	sledersPosLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	positionPage.add(slederLables[i]);
+	    }
+	    
+	  
+    	
+    }
+    
 	public ClientGui() {
 	    super("Simple Example");
 	    this.setBounds(100,100,660,480);
@@ -204,27 +282,32 @@ public class ClientGui extends JFrame {
 	void defPackage(){
 		//int iArr[] = {242,3423,5212};
 		//double fArr[] = {123.7821,4234.0,123.12,23589.2,2344092.124879,532.129};
-		int iArr[] = new int[3];
+		int iArr[] = new int[9];
 		double fArr[] = new double[6];
+		client.flush();
 		for (int i=0;i<inputsCnt/9;i++){
 			boolean flgTyped = false;
 			for (int j=0;j<9;j++)
 				if(!inputs[i*9+j].getText().equals(""))
 					flgTyped = true;
 			if (flgTyped){
-				for (int j=0;j<3;j++)
+				for (int j=0;j<9;j++)
 					if(inputs[i*9+j].getText().equals(""))
 						iArr[j]=0;
-					else
+					else{
+						//System.out.println(inputs[i*9+j].getText());
 						iArr[j]=Integer.parseInt(inputs[i*9+j].getText());
+					}
 				for (int j=3;j<9;j++)
 					if(inputs[i*9+j].getText().equals(""))
 						fArr[j-3]=0;
 					else
 						fArr[j-3]=Double.parseDouble(inputs[i*9+j].getText());
-				client.sendVals(iArr,fArr);
+				//client.sendVals(iArr,fArr);
+				client.sendVals2(iArr);
 			}		
 		}
+		
 	}
 	
 	
