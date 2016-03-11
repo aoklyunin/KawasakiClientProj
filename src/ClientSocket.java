@@ -40,6 +40,7 @@ public class ClientSocket {
 	boolean flgOpenSocket = false;
   
     Socket socket;
+	Sensor sensor;
     InputStream sin;
     OutputStream sout;
     DataInputStream in;
@@ -86,6 +87,9 @@ public class ClientSocket {
     public void home2(int speed){
     	int [] arr  = {0,C_HOME2,speed,0,0,0,0,0,0};
 		sendVals2(arr);
+    }
+    public int[] getSensorVals(){
+    	return sensor.getVals();
     }
     public void getChars(){
     	if (flgOpenSocket){ 	        		
@@ -139,6 +143,7 @@ public class ClientSocket {
     }
     boolean flgCom = false;
     public ClientSocket() {
+    	sensor = new Sensor();
     	 time.schedule(new TimerTask() {
  	        @Override
  	        public void run() { //оепегюцпсфюел лернд RUN б йнрнпнл декюере рн врн бюл мюдн
@@ -147,7 +152,12 @@ public class ClientSocket {
  	    }, 100, 100); //(4000 - онднфдюрэ оепед мювюкнл б лхкхяей, онбрнпъряъ 4 яейсмдш (1 яей = 1000 лхкхяей)) 	    
 	}
    
- 
+    void stopSensor(){
+    	sensor.stop();
+    }
+    void startSensor(){
+    	sensor.start(100);
+    }
 	void sendVals(int []iVal, double []fVal){
 		if(flgOpenSocket){
 			String s=Custom.getVali(iVal[0],6)+" "+Custom.getVali(iVal[1],3)+" "+Custom.getVali(iVal[2],4)+" ";
@@ -182,13 +192,9 @@ public class ClientSocket {
 			System.out.println(s);
 			for (int i=0;i<s.length();i++){
 				out.writeByte((byte)s.charAt(i));	
-			}	
-		    
-			
+			}		
 			//out.writeUTF(s);
-			
 			//System.out.println(s);
-			
 		} catch (IOException e) {
 			System.out.println("IO Error");
 			e.printStackTrace();

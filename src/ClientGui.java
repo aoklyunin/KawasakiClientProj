@@ -27,52 +27,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.text.AbstractDocument.LeafElement;
 
 public class ClientGui extends JFrame {
-	// элементы вкладки "пакеты
-	private JButton btnOpenSocket = new JButton("OpenSocket");
-	private JButton btnCloseSocket = new JButton("CloseSocket");
-	private JButton btnClearInputs = new JButton("ClearInputs");
-	private JButton btnSendPackage = new JButton("SendPackage");
-	private JTextField portSocet = new JTextField("40000", 5);
-	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
-	final static int inputsCnt = 99;	
-	private JTextField [] inputs = new JTextField[inputsCnt];
-	private JButton btnTest = new JButton("Test");
-	private JLabel ipLabel = new JLabel();	
-	// элементы вкладки джоиндов
-	private JButton btnAddJPoint = new JButton("AddPoint");
-	private JButton btnSendJPoinst = new JButton("SendJPoint");
-	private JButton btnClearJPoinst = new JButton("ClearPoint");	
 
-	private JButton [] buttons = new JButton[10];
-	private JSlider [] sliders = new JSlider[6];
-	private JLabel[] sliderVals = new JLabel[6];
-	private JLabel[] slederLables = new JLabel[6];
-	private JLabel[] limitLables = new JLabel[6];
-	private JTextField jSpeedInput = new JTextField("10");
-	// элементы вкладки позиций
-	private JSlider [] slidersPos = new JSlider[6];
-	private JLabel[] sledersPosLables = new JLabel[6];
-	private JLabel[] slierDekartVals = new JLabel[6];
-	private JLabel[] slierDekartPoss = new JLabel[6];
-	private JButton btnHome1 = new JButton("Home1");
-	private JButton btnHome2 = new JButton("Home2");
-	private JButton btnSetD = new JButton("Set");
-	private JTextField dSpeedInput = new JTextField("10");
-	private JButton btnSendPosition = new JButton("SendPosition");
-	// элементы вкладки углов
-	private JSlider [] slidersAngle = new JSlider[6];
-	private JLabel[] sledersAngleLables = new JLabel[6];
-	private JLabel[] slierAngleVals = new JLabel[6];
-	private JLabel[] slierAnglePoss = new JLabel[6];
-	private JButton btnSetA = new JButton("Set");
-	private JTextField aSpeedInput = new JTextField("10");
-	private JButton btnSendAngles = new JButton("SendPosition");
-	// элементы обратной связи
-	public JLabel [] jPosLables = new JLabel[6]; 
-	
-	final JTabbedPane tabbedPane = new JTabbedPane();
 	ClientSocket client;
-	
+
 	final Timer time = new Timer();
 	
     public void clearInputs(){
@@ -452,6 +409,60 @@ public class ClientGui extends JFrame {
 	    	anglesPage.add(slierAnglePoss[i]);
 	    }	
     }    
+    
+    public void createSensorPage(){
+    	Container sensorPage = new JPanel();
+    	sensorPage.setLayout(null);
+    	Insets insets = sensorPage.getInsets();
+    	tabbedPane.addTab("Датчик" ,sensorPage);
+    	 // кнопка отправки точек на контроллер
+    	sensorPage.add(btnStartSensor);
+    	Dimension size = btnStartSensor.getPreferredSize(); 
+    	btnStartSensor.setBounds(20 + insets.left, 20 + insets.top, 
+    								size.width, size.height); 
+    	btnStartSensor.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.startSensor();
+			}	    	
+	    });	
+    	sensorPage.add(btnStopSensor);
+    	size = btnStopSensor.getPreferredSize(); 
+    	btnStopSensor.setBounds(20 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnStopSensor.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.stopSensor();
+			}	    	
+	    });	
+    	
+    	for (int i=0;i<6;i++){
+    		sensorLables[i] = new JLabel();
+    		sensorLables[i] = new JLabel("j"+i);
+        	size = sensorLables[i].getPreferredSize(); 
+        	sensorLables[i].setBounds(120 + insets.left, 15+i*50 + insets.top, 
+                	 230, size.height);        	
+        	sensorPage.add(sensorLables[i]);
+        	sensorProgress[i]=new JProgressBar();
+        	size = sensorProgress[i].getPreferredSize(); 
+        	sensorProgress[i].setBounds(170 + insets.left, 15+i*50 + insets.top, 
+                	                   230, size.height);  
+        	sensorPage.add(sensorProgress[i]);
+        	sensorProgress[i].setMaximum(500000);
+        	sensorValLables[i] = new JTextField("0");
+        	size = sensorValLables[i].getPreferredSize(); 
+        	sensorValLables[i].setBounds(400 + insets.left, 15+i*50 + insets.top, 
+                	                   80, size.height);  
+        	sensorPage.add(sensorValLables[i]);
+    	}
+    	sensorLables[0].setText("Fx");
+    	sensorLables[1].setText("Fy");
+    	sensorLables[2].setText("Fz");
+    	sensorLables[3].setText("Tx");
+    	sensorLables[4].setText("Ty");
+    	sensorLables[5].setText("Tz");    
+    }
 	public ClientGui() {
 	    super("Simple Example");
 	    this.setBounds(100,100,660,480);
@@ -466,27 +477,35 @@ public class ClientGui extends JFrame {
         createJoindPage();
         createPositionPage();
         createAnglesPage();
-		client = new ClientSocket();
-		client.openSocket(adressSocket.getText(),portSocet.getText());
+        createSensorPage();
 		
 		this.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e){
             	if (client.flgOpenSocket)
             		client.closeSocket();
+            	client.stopSensor();
             }
         });
+		client = new ClientSocket();
+		client.openSocket(adressSocket.getText(),portSocet.getText());
 		time.schedule(new TimerTask() {
 	 	        @Override
 	 	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
 	 	        	int [] paramsJ = client.getRotations();
 	 	        	int [] paramsD = client.getPositions();
+	 	        	int [] sensorVals = client.getSensorVals();
 	 	        	for (int i=0;i<6;i++){
 	 	        		jPosLables[i].setText(paramsJ[i]+"");
 	 	        		slierDekartPoss[i].setText(paramsD[i]+"");
-	 	        		slierAnglePoss[i].setText(paramsJ[i]+"");
+	 	        		if ( sensorVals[i] < 0)
+	 	        			sensorProgress[i].setForeground( Color.blue );
+	                    else
+	                    	sensorProgress[i].setForeground( Color.green );
+	 	        		sensorProgress[i].setValue(Math.abs(sensorVals[i]));
+	 	        		sensorValLables[i].setText(sensorVals[i]+"");
 	 	        	}
 	 	        }
-	 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    
+	 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    	
 	}
     
 	void defPackage(){
@@ -516,13 +535,62 @@ public class ClientGui extends JFrame {
 				//client.sendVals(iArr,fArr);
 				client.sendVals2(iArr);
 			}		
-		}
-		
-	}
-	
+		}	
+	}	
 	
 	public static void main(String[] args) {
 		ClientGui app = new ClientGui();
 		app.setVisible(true);
 	}
+	
+	// элементы вкладки "пакеты
+	private JButton btnOpenSocket = new JButton("OpenSocket");
+	private JButton btnCloseSocket = new JButton("CloseSocket");
+	private JButton btnClearInputs = new JButton("ClearInputs");
+	private JButton btnSendPackage = new JButton("SendPackage");
+	private JTextField portSocet = new JTextField("40000", 5);
+	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
+	final static int inputsCnt = 99;	
+	private JTextField [] inputs = new JTextField[inputsCnt];
+	private JButton btnTest = new JButton("Test");
+	private JLabel ipLabel = new JLabel();	
+	// элементы вкладки джоиндов
+	private JButton btnAddJPoint = new JButton("AddPoint");
+	private JButton btnSendJPoinst = new JButton("SendJPoint");
+	private JButton btnClearJPoinst = new JButton("ClearPoint");	
+
+	private JButton [] buttons = new JButton[10];
+	private JSlider [] sliders = new JSlider[6];
+	private JLabel[] sliderVals = new JLabel[6];
+	private JLabel[] slederLables = new JLabel[6];
+	private JLabel[] limitLables = new JLabel[6];
+	private JTextField jSpeedInput = new JTextField("10");
+	// элементы вкладки позиций
+	private JSlider [] slidersPos = new JSlider[6];
+	private JLabel[] sledersPosLables = new JLabel[6];
+	private JLabel[] slierDekartVals = new JLabel[6];
+	private JLabel[] slierDekartPoss = new JLabel[6];
+	private JButton btnHome1 = new JButton("Home1");
+	private JButton btnHome2 = new JButton("Home2");
+	private JButton btnSetD = new JButton("Set");
+	private JTextField dSpeedInput = new JTextField("10");
+	private JButton btnSendPosition = new JButton("SendPosition");
+	// элементы вкладки углов
+	private JSlider [] slidersAngle = new JSlider[6];
+	private JLabel[] sledersAngleLables = new JLabel[6];
+	private JLabel[] slierAngleVals = new JLabel[6];
+	private JLabel[] slierAnglePoss = new JLabel[6];
+	private JButton btnSetA = new JButton("Set");
+	private JTextField aSpeedInput = new JTextField("10");
+	private JButton btnSendAngles = new JButton("SendPosition");
+	// элементы вкладки датчика
+	private JButton btnStartSensor = new JButton("Start");
+	private JButton btnStopSensor = new JButton("Stop");
+	private JProgressBar [] sensorProgress = new JProgressBar[6];
+	private JLabel[] sensorLables = new JLabel[6];
+	private JTextField[] sensorValLables = new JTextField[6];
+	// элементы обратной связи
+	public JLabel [] jPosLables = new JLabel[6]; 
+	
+	final JTabbedPane tabbedPane = new JTabbedPane();
 }
