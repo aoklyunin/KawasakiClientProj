@@ -6,11 +6,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
+import javax.naming.ldap.HasControls;
 import javax.sound.midi.ShortMessage;
 import javax.swing.JOptionPane;
 
@@ -32,13 +38,21 @@ public class ClientSocket {
 	final static int ERR_INRANGE_J6 = 32; //äî äæîèíòà 6 íå äîñòàòü
 	final static int ERR_NOT_INRANGE = 32786; //âíå äîñÿãàåìîñòè
 	
+	final static int X_COORD = 0;
+	final static int Y_COORD = 1;
+	final static int Z_COORD = 2;
+	final static int O_COORD = 3;
+	final static int A_COORD = 4;
+	final static int T_COORD = 5;
+	
 	final static int[] ULIMIMT = { 160,  140,  120,  270,  145,  360};
 	final static int[] LLIMIMT = {-160, -105, -155, -270, -145, -360};
 	
 	int port=40000;
 	final Timer time = new Timer();
 	boolean flgOpenSocket = false;
-  
+	
+	
     Socket socket;
 	Sensor sensor;
     InputStream sin;
@@ -47,7 +61,7 @@ public class ClientSocket {
     DataOutputStream out;
     
     String inStr = "";
-    
+    int coordArr[] = new int[6];
     JPoints jp= new JPoints();
     LinkedList<String> fifo = new LinkedList<String>();
     public void flush(){
@@ -151,6 +165,32 @@ public class ClientSocket {
  	        }
  	    }, 100, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅĞÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎĞßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ)) 	    
 	}
+    
+    void moveD(byte[] arr){
+    	int [] positionsN = Arrays.copyOf(positions, 6);
+    	boolean flgMove = false;
+    	for (int i=0;i<3;i++){
+    		if (coordArr[i]==0){
+    			coordArr[i] = positions[i]+arr[i];
+    		}else{    			
+    			if (  arr[i]>0&&coordArr[i]<positions[i]+arr[i]
+    				  ||arr[i]<0&&coordArr[i]>positions[i]+arr[i]){
+    				flgMove = true;
+    			}else{
+    				arr[i] = 0;
+    			}
+    		}
+    	}
+    	if (flgMove){
+    		for (int i=0;i<3;i++){
+    		    	positionsN[i]+=arr[i];
+    		    	coordArr[i] = positionsN[i];
+    		    	runInPointD(positionsN[0], positionsN[1], positionsN[2], 
+    		    				positionsN[3], positionsN[4], positionsN[5], "", 10);
+    			}
+    				
+    	}    		
+    }
    
     void stopSensor(){
     	sensor.stop();

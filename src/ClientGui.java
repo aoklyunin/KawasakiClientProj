@@ -29,6 +29,7 @@ import javax.swing.text.AbstractDocument.LeafElement;
 public class ClientGui extends JFrame {
 
 	ClientSocket client;
+	KeyListener keyListener;
 
 	final Timer time = new Timer();
 	
@@ -249,19 +250,7 @@ public class ClientGui extends JFrame {
     	dSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
       	 	   100, size.height); 
     	positionPage.add(dSpeedInput);
-    	positionPage.add(btnSetD);
-    	size = btnSetD.getPreferredSize(); 
-    	btnSetD.setBounds(180 + insets.left, 350 + insets.top, 
-    								size.width, size.height); 
-    	btnSetD.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int [] arr = client.getPositions();
-				for (int i=0;i<6;i++){
-					slidersPos[i].setValue(arr[i]);
-				}
-			}	    	
-	    });	
+  
     	
     	positionPage.add(btnHome1);
     	size = btnHome1.getPreferredSize(); 
@@ -356,19 +345,6 @@ public class ClientGui extends JFrame {
     	aSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
       	 	   100, size.height); 
     	anglesPage.add(aSpeedInput);
-    	anglesPage.add(btnSetA);
-    	size = btnSetA.getPreferredSize(); 
-    	btnSetA.setBounds(180 + insets.left, 350 + insets.top, 
-    								size.width, size.height); 
-    	btnSetA.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int [] arr = client.getRotations();
-				for (int i=0;i<6;i++){
-					slidersAngle[i].setValue(arr[i]);
-				}
-			}	    	
-	    });	
 	    // ñëàéäåðû
 	    for (int i=0;i<6;i++){
 	    	slidersAngle[i] = new JSlider(ClientSocket.LLIMIMT[i], ClientSocket.ULIMIMT[i], 0);
@@ -464,15 +440,84 @@ public class ClientGui extends JFrame {
     	sensorLables[5].setText("Tz");    
     }
 	public ClientGui() {
+		
 	    super("Simple Example");
 	    this.setBounds(100,100,660,480);
 	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	keyListener = new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				byte arr[] = new byte[3];
+				// TODO Auto-generated method stub
+				switch(arg0.getKeyCode()){
+				case 87:
+					arr[ClientSocket.X_COORD]=10;
+					break;
+				case 83:
+					arr[ClientSocket.X_COORD]=-10;
+					break;
+				case 65:
+					arr[ClientSocket.Y_COORD]=10;
+					break;
+				case 68:
+					arr[ClientSocket.Y_COORD]=-10;
+					break;
+				case 81:
+					arr[ClientSocket.Z_COORD]=10;
+					break;
+				case 69:
+					arr[ClientSocket.Z_COORD]=-10;
+					break;
+				}
+				client.moveD(arr);
+			}
+		};
+	    
 	    // Êîíòåéíåð        
         JPanel content = new JPanel();
-        content.setLayout(new BorderLayout());
         
+        ChangeListener changeListener = new ChangeListener() {
+            public void stateChanged(ChangeEvent changeEvent) {
+              JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
+              switch(sourceTabbedPane.getSelectedIndex()){
+              case 2:
+            	  	int [] arr = client.getPositions();
+            		for (int i=0;i<6;i++){
+            			slidersPos[i].setValue(arr[i]);
+            		}
+            		break;
+              case 3:
+            		int [] arr2 = client.getRotations();
+    				for (int i=0;i<6;i++){
+    					slidersAngle[i].setValue(arr2[i]);
+    				}
+            	  	break;
+              }              
+            }
+          };
+          tabbedPane.addChangeListener(changeListener);
+          
+          content.setFocusable(true);
+          content.requestFocusInWindow();
+        content.setLayout(new BorderLayout());
+        content.addKeyListener(keyListener);
         getContentPane().add(content);
         content.add(tabbedPane);
+        
+  
         createPackagePage();
         createJoindPage();
         createPositionPage();
@@ -505,7 +550,8 @@ public class ClientGui extends JFrame {
 	 	        		sensorValLables[i].setText(sensorVals[i]+"");
 	 	        	}
 	 	        }
-	 	    }, 100, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ)) 	    	
+	 	    }, 100, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
+	
 	}
     
 	void defPackage(){
@@ -572,7 +618,6 @@ public class ClientGui extends JFrame {
 	private JLabel[] slierDekartPoss = new JLabel[6];
 	private JButton btnHome1 = new JButton("Home1");
 	private JButton btnHome2 = new JButton("Home2");
-	private JButton btnSetD = new JButton("Set");
 	private JTextField dSpeedInput = new JTextField("10");
 	private JButton btnSendPosition = new JButton("SendPosition");
 	// ýëåìåíòû âêëàäêè óãëîâ
@@ -580,7 +625,6 @@ public class ClientGui extends JFrame {
 	private JLabel[] sledersAngleLables = new JLabel[6];
 	private JLabel[] slierAngleVals = new JLabel[6];
 	private JLabel[] slierAnglePoss = new JLabel[6];
-	private JButton btnSetA = new JButton("Set");
 	private JTextField aSpeedInput = new JTextField("10");
 	private JButton btnSendAngles = new JButton("SendPosition");
 	// ýëåìåíòû âêëàäêè äàò÷èêà
