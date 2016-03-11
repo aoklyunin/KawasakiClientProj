@@ -42,7 +42,7 @@ public class ClientGui extends JFrame {
 	private JButton btnAddJPoint = new JButton("AddPoint");
 	private JButton btnSendJPoinst = new JButton("SendJPoint");
 	private JButton btnClearJPoinst = new JButton("ClearPoint");	
-	private JButton btnSendPosition = new JButton("SendPosition");
+
 	private JButton [] buttons = new JButton[10];
 	private JSlider [] sliders = new JSlider[6];
 	private JLabel[] sliderVals = new JLabel[6];
@@ -56,8 +56,17 @@ public class ClientGui extends JFrame {
 	private JLabel[] slierDekartPoss = new JLabel[6];
 	private JButton btnHome1 = new JButton("Home1");
 	private JButton btnHome2 = new JButton("Home2");
-	private JButton btnSet = new JButton("Set");
+	private JButton btnSetD = new JButton("Set");
 	private JTextField dSpeedInput = new JTextField("10");
+	private JButton btnSendPosition = new JButton("SendPosition");
+	// элементы вкладки углов
+	private JSlider [] slidersAngle = new JSlider[6];
+	private JLabel[] sledersAngleLables = new JLabel[6];
+	private JLabel[] slierAngleVals = new JLabel[6];
+	private JLabel[] slierAnglePoss = new JLabel[6];
+	private JButton btnSetA = new JButton("Set");
+	private JTextField aSpeedInput = new JTextField("10");
+	private JButton btnSendAngles = new JButton("SendPosition");
 	// элементы обратной связи
 	public JLabel [] jPosLables = new JLabel[6]; 
 	
@@ -283,11 +292,11 @@ public class ClientGui extends JFrame {
     	dSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
       	 	   100, size.height); 
     	positionPage.add(dSpeedInput);
-    	positionPage.add(btnSet);
-    	size = btnSet.getPreferredSize(); 
-    	btnSet.setBounds(180 + insets.left, 350 + insets.top, 
+    	positionPage.add(btnSetD);
+    	size = btnSetD.getPreferredSize(); 
+    	btnSetD.setBounds(180 + insets.left, 350 + insets.top, 
     								size.width, size.height); 
-    	btnSet.addActionListener(new ActionListener(){
+    	btnSetD.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int [] arr = client.getPositions();
@@ -364,6 +373,85 @@ public class ClientGui extends JFrame {
 	    }	
     }    
    
+
+    public void createAnglesPage(){    
+    	Container anglesPage = new JPanel();
+    	anglesPage.setLayout(null);
+    	Insets insets = anglesPage.getInsets();
+    	tabbedPane.addTab("Углы" ,anglesPage);
+    	 // кнопка отправки точек на контроллер
+    	anglesPage.add(btnSendAngles);
+    	Dimension size = btnSendAngles.getPreferredSize(); 
+    	btnSendAngles.setBounds(460 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnSendAngles.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.runInPointA(slidersAngle[0].getValue(),
+									slidersAngle[1].getValue(),
+									slidersAngle[2].getValue(),
+									slidersAngle[3].getValue(),
+									slidersAngle[4].getValue(),
+									slidersAngle[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(aSpeedInput.getText()));
+			}	    	
+	    });	
+    	size = aSpeedInput.getPreferredSize(); 
+    	aSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
+      	 	   100, size.height); 
+    	anglesPage.add(aSpeedInput);
+    	anglesPage.add(btnSetA);
+    	size = btnSetA.getPreferredSize(); 
+    	btnSetA.setBounds(180 + insets.left, 350 + insets.top, 
+    								size.width, size.height); 
+    	btnSetA.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int [] arr = client.getRotations();
+				for (int i=0;i<6;i++){
+					slidersAngle[i].setValue(arr[i]);
+				}
+			}	    	
+	    });	
+	    // слайдеры
+	    for (int i=0;i<6;i++){
+	    	slidersAngle[i] = new JSlider(ClientSocket.LLIMIMT[i], ClientSocket.ULIMIMT[i], 0);
+	    	anglesPage.add(slidersAngle[i]);
+	    	int ln = ClientSocket.ULIMIMT[i]-ClientSocket.LLIMIMT[i];
+	    	slidersAngle[i].setMajorTickSpacing(ln/4);
+	    	slidersAngle[i].setMinorTickSpacing(ln/8);
+	    	slidersAngle[i].setPaintLabels(true);
+	    	slidersAngle[i].setPaintTicks(true);
+	    	slidersAngle[i].setPaintTrack(true);
+	    	slidersAngle[i].setAutoscrolls(true);
+	    	size = slidersAngle[i].getPreferredSize(); 
+	    	slidersAngle[i].setBounds(30 + insets.left, 15+i*50 + insets.top, 
+                     	 230, size.height);
+	    	sledersAngleLables[i] = new JLabel("j"+i);
+	    	size = sledersAngleLables[i].getPreferredSize(); 
+	    	sledersAngleLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	
+	    	anglesPage.add(sledersAngleLables[i]);
+	    	final int pos = i;
+	    	slidersAngle[pos].addChangeListener(new ChangeListener() {				
+				@Override
+				public void stateChanged(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+					slierAngleVals[pos].setText(slidersAngle[pos].getValue()+"");
+				}
+			});
+	    	slierAngleVals[i] = new JLabel("0");
+	    	size = slierAngleVals[i].getPreferredSize(); 
+	    	slierAngleVals[i].setBounds(280 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	anglesPage.add(slierAngleVals[i]);
+	    	slierAnglePoss[i] = new JLabel("0");
+	    	size = slierAnglePoss[i].getPreferredSize(); 
+	    	slierAnglePoss[i].setBounds(310 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	anglesPage.add(slierAnglePoss[i]);
+	    }	
+    }    
 	public ClientGui() {
 	    super("Simple Example");
 	    this.setBounds(100,100,660,480);
@@ -377,6 +465,7 @@ public class ClientGui extends JFrame {
         createPackagePage();
         createJoindPage();
         createPositionPage();
+        createAnglesPage();
 		client = new ClientSocket();
 		client.openSocket(adressSocket.getText(),portSocet.getText());
 		
@@ -394,6 +483,7 @@ public class ClientGui extends JFrame {
 	 	        	for (int i=0;i<6;i++){
 	 	        		jPosLables[i].setText(paramsJ[i]+"");
 	 	        		slierDekartPoss[i].setText(paramsD[i]+"");
+	 	        		slierAnglePoss[i].setText(paramsJ[i]+"");
 	 	        	}
 	 	        }
 	 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    

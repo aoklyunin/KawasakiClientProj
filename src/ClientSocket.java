@@ -74,6 +74,10 @@ public class ClientSocket {
     	int [] arr  = {0,C_D_POINT,speed,j1,j2,j3,j4,j5,j6};   
     	sendVals2(arr);
     }
+    public void runInPointA(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
+    	int [] arr  = {0,C_J_POINT,speed,j1,j2,j3,j4,j5,j6};   
+    	sendVals2(arr);
+    }
     public void home1(int speed){
     	int [] arr  = {0,C_HOME1,speed,0,0,0,0,0,0};
 		sendVals2(arr);
@@ -168,13 +172,14 @@ public class ClientSocket {
 			String s="";
 			for(int i=0;i<9;i++)
 				s+=Custom.getVali(iVal[i],6)+" ";			
-			//s+="/";
+			//s+="/"
 			sendPackage(s);
 		}
 	}
 	void sendPackage(String s){
 		try {
-			
+			System.out.println(s.length()+"");
+			System.out.println(s);
 			for (int i=0;i<s.length();i++){
 				out.writeByte((byte)s.charAt(i));	
 			}	

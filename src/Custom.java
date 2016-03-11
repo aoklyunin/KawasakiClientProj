@@ -8,6 +8,7 @@ public class Custom {
 			if (i<0){
 				s = s.substring(1,s.length());
 				minusS = "-";
+				ln--;
 			}
 				
 			String tmpS = "";
