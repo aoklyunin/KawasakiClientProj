@@ -1,3 +1,8 @@
+/*  TODO:
+ *  1) кнопка остановки выполнения программы роботом
+ * 
+ * 
+ */
 
 import java.awt.*;
 import java.awt.event.*;
@@ -17,38 +22,50 @@ import java.util.TimerTask;
 
 import javax.security.auth.Subject;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.AbstractDocument.LeafElement;
 
 public class ClientGui extends JFrame {
-	final static int inputsCnt = 99; 
+	// элементы вкладки "пакеты
 	private JButton btnOpenSocket = new JButton("OpenSocket");
 	private JButton btnCloseSocket = new JButton("CloseSocket");
 	private JButton btnClearInputs = new JButton("ClearInputs");
 	private JButton btnSendPackage = new JButton("SendPackage");
-	
-	private JButton btnAddJPoint = new JButton("AddPoint");
-	private JButton btnSendJPoinst = new JButton("SendJPoint");
-	private JButton btnClearJPoinst = new JButton("ClearPoint");
-	private JButton btnInitInputs = new JButton("InitInputs");
-	
-	private JButton btnTest = new JButton("Test");
-	
-	private JButton btnSendPosition = new JButton("SendPosition");
-	
 	private JTextField portSocet = new JTextField("40000", 5);
 	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
-	public JTextField [] inputs = new JTextField[inputsCnt];
-	public JButton [] buttons = new JButton[10];
-	private JLabel ipLabel = new JLabel();
-	
+	final static int inputsCnt = 99;	
+	private JTextField [] inputs = new JTextField[inputsCnt];
+	private JButton btnTest = new JButton("Test");
+	private JLabel ipLabel = new JLabel();	
+	// элементы вкладки джоиндов
+	private JButton btnAddJPoint = new JButton("AddPoint");
+	private JButton btnSendJPoinst = new JButton("SendJPoint");
+	private JButton btnClearJPoinst = new JButton("ClearPoint");	
+	private JButton btnSendPosition = new JButton("SendPosition");
+	private JButton [] buttons = new JButton[10];
 	private JSlider [] sliders = new JSlider[6];
+	private JLabel[] sliderVals = new JLabel[6];
 	private JLabel[] slederLables = new JLabel[6];
-	
-	private JSlider [] slidersPos = new JSlider[3];
-	private JLabel[] sledersPosLables = new JLabel[3];
+	private JLabel[] limitLables = new JLabel[6];
+	private JTextField jSpeedInput = new JTextField("10");
+	// элементы вкладки позиций
+	private JSlider [] slidersPos = new JSlider[6];
+	private JLabel[] sledersPosLables = new JLabel[6];
+	private JLabel[] slierDekartVals = new JLabel[6];
+	private JLabel[] slierDekartPoss = new JLabel[6];
+	private JButton btnHome1 = new JButton("Home1");
+	private JButton btnHome2 = new JButton("Home2");
+	private JButton btnSet = new JButton("Set");
+	private JTextField dSpeedInput = new JTextField("10");
+	// элементы обратной связи
+	public JLabel [] jPosLables = new JLabel[6]; 
 	
 	final JTabbedPane tabbedPane = new JTabbedPane();
 	ClientSocket client;
+	
+	final Timer time = new Timer();
+	
     public void clearInputs(){
     	for (int j=0;j<inputsCnt;j++)
 			inputs[j].setText("");
@@ -91,7 +108,7 @@ public class ClientGui extends JFrame {
 	    // кнопка тест
     	packagePage.add(btnTest);
 	    size = btnTest.getPreferredSize(); 
-	    btnTest.setBounds(560+ insets.left, 10 + insets.top, 
+	    btnTest.setBounds(485+ insets.left, 40 + insets.top, 
                      	 size.width, size.height); 
 	    btnTest.addActionListener(new ActionListener(){
 			@Override
@@ -121,21 +138,7 @@ public class ClientGui extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				clearInputs();
 			}	    	
-	    });
-	    // кнопка очистки полей ввода
-	    packagePage.add(btnInitInputs);
-	    size = btnInitInputs.getPreferredSize(); 
-	    btnInitInputs.setBounds(520 + insets.left, 40 + insets.top, 
-                     	 size.width, size.height); 
-	    btnInitInputs.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				for (int i=0;i<45;i++){
-					inputs[i].setText(i+"");
-				}
-			}	    	
-	    });
-	    
+	    });	    
 	    // IP Адрес
 		try {
 			InetAddress IP = InetAddress.getLocalHost();
@@ -153,6 +156,12 @@ public class ClientGui extends JFrame {
 	    size = btnCloseSocket.getPreferredSize(); 
 	    btnCloseSocket.setBounds(15 + insets.left, 45 + insets.top, 
                      	 size.width, size.height);
+	    btnCloseSocket.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.closeSocket();
+			}	    	
+	    });	    
     }
     public void createJoindPage(){    
     	Container joindPage = new JPanel();
@@ -162,7 +171,7 @@ public class ClientGui extends JFrame {
     	 // кнопка отправки точек на контроллер
     	joindPage.add(btnSendJPoinst);
     	Dimension size = btnSendJPoinst.getPreferredSize(); 
-	    btnSendJPoinst.setBounds(300 + insets.left, 50 + insets.top, 
+	    btnSendJPoinst.setBounds(460 + insets.left, 50 + insets.top, 
 	    					     100, size.height); 
 	    btnSendJPoinst.addActionListener(new ActionListener(){
 			@Override
@@ -173,7 +182,7 @@ public class ClientGui extends JFrame {
 	    // кнопка удаления всех точек
 	    joindPage.add(btnClearJPoinst);
 	    size = btnClearJPoinst.getPreferredSize(); 
-	    btnClearJPoinst.setBounds(300 + insets.left, 110 + insets.top, 
+	    btnClearJPoinst.setBounds(460 + insets.left, 110 + insets.top, 
 	    					   100, size.height); 
 	    btnClearJPoinst.addActionListener(new ActionListener(){
 			@Override
@@ -184,20 +193,23 @@ public class ClientGui extends JFrame {
 	    // кнопка добавления точек поворота
 	    joindPage.add(btnAddJPoint);
 	    size = btnAddJPoint.getPreferredSize(); 
-	    btnAddJPoint.setBounds(300 + insets.left, 80 + insets.top, 
+	    btnAddJPoint.setBounds(460 + insets.left, 80 + insets.top, 
                      	 	   100, size.height); 
 	    btnAddJPoint.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.addJPoint((double)sliders[0].getValue(),
-							     (double)sliders[1].getValue(),
-							     (double)sliders[2].getValue(),
-							     (double)sliders[3].getValue(),
-							     (double)sliders[4].getValue(),
-							     (double)sliders[5].getValue(),JPoints.ABSOLUTE);
+				client.addJPoint(sliders[0].getValue(),
+							     sliders[1].getValue(),
+							     sliders[2].getValue(),
+							     sliders[3].getValue(),
+							     sliders[4].getValue(),
+							     sliders[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(jSpeedInput.getText()));
 			}	    	
-	    });
-	  
+	    });	  
+	    size = jSpeedInput.getPreferredSize(); 
+	    jSpeedInput.setBounds(460 + insets.left, 140 + insets.top, 
+      	 	   100, size.height); 
+    	joindPage.add(jSpeedInput);
 	    // слайдеры
 	    for (int i=0;i<6;i++){
 	    	sliders[i] = new JSlider(-360, 360, 0);
@@ -209,43 +221,117 @@ public class ClientGui extends JFrame {
 	    	sliders[i].setPaintTrack(true);
 	    	sliders[i].setAutoscrolls(true);
 	    	size = sliders[i].getPreferredSize(); 
-	    	sliders[i].setBounds(30 + insets.left, 15+i*50 + insets.top, 
+	    	sliders[i].setBounds(30 + insets.left, 40+i*50 + insets.top, 
                      	 230, size.height);
+	    	final int pos = i;
+	    	sliders[pos].addChangeListener(new ChangeListener() {				
+				@Override
+				public void stateChanged(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+					sliderVals[pos].setText(sliders[pos].getValue()+"");
+				}
+			});
 	    	slederLables[i] = new JLabel("j"+i);
 	    	size = slederLables[i].getPreferredSize(); 
-	    	slederLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
+	    	slederLables[i].setBounds(10 + insets.left, 40+i*50 + insets.top, 
                 	 230, size.height);
 	    	joindPage.add(slederLables[i]);
+	    	sliderVals[i] = new JLabel("0");
+	    	size = sliderVals[i].getPreferredSize(); 
+	    	sliderVals[i].setBounds(280 + insets.left, 40+i*50 + insets.top, 
+                	 230, size.height);
+	    	joindPage.add(sliderVals[i]);	    	
 	    }
-	    
+	    // монитор положений
+	    for (int i=0;i<6;i++){
+	    	jPosLables[i] = new JLabel("0");
+	    	size = jPosLables[i].getPreferredSize(); 
+	    	jPosLables[i].setBounds(320 + insets.left, 40+i*50 + insets.top, 
+                	 230, size.height);
+	    	joindPage.add(jPosLables[i]);
+	    	limitLables[i] = new JLabel("["+ClientSocket.ULIMIMT[i]+":"+ClientSocket.LLIMIMT[i]+"]");
+	    	size = limitLables[i].getPreferredSize(); 
+	    	limitLables[i].setBounds(360 + insets.left, 40+i*50 + insets.top, 
+                	 230, size.height);
+	    	joindPage.add(limitLables[i]);
+	    }  	    
     }
+    
     
     public void createPositionPage(){    
     	Container positionPage = new JPanel();
     	positionPage.setLayout(null);
     	Insets insets = positionPage.getInsets();
-    	tabbedPane.addTab("Джоинды" ,positionPage);
+    	tabbedPane.addTab("Декард" ,positionPage);
     	 // кнопка отправки точек на контроллер
     	positionPage.add(btnSendPosition);
     	Dimension size = btnSendPosition.getPreferredSize(); 
-    	btnSendPosition.setBounds(300 + insets.left, 50 + insets.top, 
-	    					     100, size.height); 
+    	btnSendPosition.setBounds(460 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
     	btnSendPosition.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.sendPositionPoints();
+				client.runInPointD(slidersPos[0].getValue(),
+								   slidersPos[1].getValue(),
+								   slidersPos[2].getValue(),
+								   slidersPos[3].getValue(),
+								   slidersPos[4].getValue(),
+								   slidersPos[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(dSpeedInput.getText()));
 			}	    	
-	    });
-	
+	    });	
+    	size = dSpeedInput.getPreferredSize(); 
+    	dSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
+      	 	   100, size.height); 
+    	positionPage.add(dSpeedInput);
+    	positionPage.add(btnSet);
+    	size = btnSet.getPreferredSize(); 
+    	btnSet.setBounds(180 + insets.left, 350 + insets.top, 
+    								size.width, size.height); 
+    	btnSet.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int [] arr = client.getPositions();
+				for (int i=0;i<6;i++){
+					slidersPos[i].setValue(arr[i]);
+				}
+			}	    	
+	    });	
+    	
+    	positionPage.add(btnHome1);
+    	size = btnHome1.getPreferredSize(); 
+    	btnHome1.setBounds(20 + insets.left, 350 + insets.top, 
+    								size.width, size.height); 
+    	btnHome1.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.home1(Integer.parseInt(dSpeedInput.getText()));
+			}	    	
+	    });	
+    	
+    	
+    	positionPage.add(btnHome2);
+    	size = btnHome2.getPreferredSize(); 
+    	btnHome2.setBounds(100 + insets.left, 350 + insets.top, 
+    								size.width, size.height); 
+    	btnHome2.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.home2(Integer.parseInt(dSpeedInput.getText()));
+			}	    	
+	    });	
+    	
     	sledersPosLables[0] = new JLabel("x");
     	sledersPosLables[1] = new JLabel("y");
     	sledersPosLables[2] = new JLabel("z");
+    	sledersPosLables[3] = new JLabel("a");
+    	sledersPosLables[4] = new JLabel("o");
+    	sledersPosLables[5] = new JLabel("t");
 	    // слайдеры
-	    for (int i=0;i<3;i++){
-	    	slidersPos[i] = new JSlider(-360, 360, 0);
-	    	positionPage.add(sliders[i]);
-	    	slidersPos[i].setMajorTickSpacing(120);
-	    	slidersPos[i].setMinorTickSpacing(30);
+	    for (int i=0;i<6;i++){
+	    	slidersPos[i] = new JSlider(-1000, 1000, 0);
+	    	positionPage.add(slidersPos[i]);
+	    	slidersPos[i].setMajorTickSpacing(500);
+	    	slidersPos[i].setMinorTickSpacing(250);
 	    	slidersPos[i].setPaintLabels(true);
 	    	slidersPos[i].setPaintTicks(true);
 	    	slidersPos[i].setPaintTrack(true);
@@ -256,13 +342,28 @@ public class ClientGui extends JFrame {
 	    	size = sledersPosLables[i].getPreferredSize(); 
 	    	sledersPosLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
 	            	 230, size.height);
-	    	positionPage.add(slederLables[i]);
-	    }
-	    
-	  
-    	
-    }
-    
+	    	positionPage.add(sledersPosLables[i]);
+	    	final int pos = i;
+	    	slidersPos[pos].addChangeListener(new ChangeListener() {				
+				@Override
+				public void stateChanged(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+					slierDekartVals[pos].setText(slidersPos[pos].getValue()+"");
+				}
+			});
+	    	slierDekartVals[i] = new JLabel("0");
+	    	size = slierDekartVals[i].getPreferredSize(); 
+	    	slierDekartVals[i].setBounds(280 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	positionPage.add(slierDekartVals[i]);
+	    	slierDekartPoss[i] = new JLabel("0");
+	    	size = slierDekartPoss[i].getPreferredSize(); 
+	    	slierDekartPoss[i].setBounds(310 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	positionPage.add(slierDekartPoss[i]);
+	    }	
+    }    
+   
 	public ClientGui() {
 	    super("Simple Example");
 	    this.setBounds(100,100,660,480);
@@ -273,12 +374,31 @@ public class ClientGui extends JFrame {
         
         getContentPane().add(content);
         content.add(tabbedPane);
-        
         createPackagePage();
         createJoindPage();
-      
+        createPositionPage();
 		client = new ClientSocket();
+		client.openSocket(adressSocket.getText(),portSocet.getText());
+		
+		this.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+            	if (client.flgOpenSocket)
+            		client.closeSocket();
+            }
+        });
+		time.schedule(new TimerTask() {
+	 	        @Override
+	 	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
+	 	        	int [] paramsJ = client.getRotations();
+	 	        	int [] paramsD = client.getPositions();
+	 	        	for (int i=0;i<6;i++){
+	 	        		jPosLables[i].setText(paramsJ[i]+"");
+	 	        		slierDekartPoss[i].setText(paramsD[i]+"");
+	 	        	}
+	 	        }
+	 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    
 	}
+    
 	void defPackage(){
 		//int iArr[] = {242,3423,5212};
 		//double fArr[] = {123.7821,4234.0,123.12,23589.2,2344092.124879,532.129};

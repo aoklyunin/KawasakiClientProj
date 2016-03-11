@@ -1,3 +1,4 @@
+import java.awt.List;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,6 +15,26 @@ import javax.sound.midi.ShortMessage;
 import javax.swing.JOptionPane;
 
 public class ClientSocket {
+	final static int C_STOP = 4;// остановка
+	final static int C_J = 5; //управление конкретным джоиндом
+	final static int C_GetPositionAxis = 6; //получить положение оси
+	final static int C_GetPosition = 7; //получить положение координаты
+	final static int C_J_POINT = 8; //управление по осям
+	final static int C_D_POINT = 9; //управление по окординатам
+	final static int C_HOME1 = 10; //выход в домашнюю зону 1
+	final static int C_HOME2 = 11;// выход в домашнюю зону 2
+	final static int C_ERR = 12; // ошибка
+	final static int ERR_INRANGE_J1 = 1; //до джоинта 1 не достать
+	final static int ERR_INRANGE_J2 = 2; //до джоинта 2 не достать
+	final static int ERR_INRANGE_J3 = 4; //до джоинта 3 не достать
+	final static int ERR_INRANGE_J4 = 8; //до джоинта 4 не достать
+	final static int ERR_INRANGE_J5 = 16; //до джоинта 5 не достать
+	final static int ERR_INRANGE_J6 = 32; //до джоинта 6 не достать
+	final static int ERR_NOT_INRANGE = 32786; //вне досягаемости
+	
+	final static int[] ULIMIMT = { 160,  140,  120,  270,  145,  360};
+	final static int[] LLIMIMT = {-160, -105, -155, -270, -145, -360};
+	
 	int port=40000;
 	final Timer time = new Timer();
 	boolean flgOpenSocket = false;
@@ -23,6 +44,8 @@ public class ClientSocket {
     OutputStream sout;
     DataInputStream in;
     DataOutputStream out;
+    
+    String inStr = "";
     
     JPoints jp= new JPoints();
     LinkedList<String> fifo = new LinkedList<String>();
@@ -34,57 +57,90 @@ public class ClientSocket {
 			e.printStackTrace();
 		}
     }
-    public void sendPositionPoints(){
-    	
+    int pos = 0;
+    boolean flgSpace = false;
+    boolean flgFirstSpace = true;
+    int [] lst = new int[9];
+    int rotations[] = new int [6];
+    int positions[] = new int [6];
+    
+    public int [] getRotations(){
+    	return rotations;
+    }
+    public int [] getPositions(){
+    	return positions;
+    }
+    public void runInPointD(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
+    	int [] arr  = {0,C_D_POINT,speed,j1,j2,j3,j4,j5,j6};   
+    	sendVals2(arr);
+    }
+    public void home1(int speed){
+    	int [] arr  = {0,C_HOME1,speed,0,0,0,0,0,0};
+		sendVals2(arr);
+    }
+    
+    public void home2(int speed){
+    	int [] arr  = {0,C_HOME2,speed,0,0,0,0,0,0};
+		sendVals2(arr);
+    }
+    public void getChars(){
+    	if (flgOpenSocket){ 	        		
+      	   if (!socket.isConnected()){
+      		   Custom.showMessage("Client disconnected");
+      		   closeSocket();
+      	   }else
+      	   try {
+      		   if(flgOpenSocket){ 	        			  
+      			   while(in.available()!=0){	
+      				   char c = (char)in.readByte();
+      				   if (c==' '){
+      					   if (!flgSpace&&!flgFirstSpace){
+      						   pos++;
+      						   lst[pos-1] = Integer.parseInt(inStr);
+      						   inStr = "";
+      						   if (pos>=9){
+      							   switch(lst[1]){
+      							   		case  C_GetPositionAxis:
+      							   			for (int i=0;i<6;i++)
+      							   				rotations[i]=lst[i+3];
+      							   		break;
+      							   		case  C_GetPosition:
+      							   			for (int i=0;i<6;i++)
+      							   				positions[i]=lst[i+3];
+  							   			break;
+      							   		case C_ERR:
+      							   			switch (lst[2]){
+      							   				case ERR_NOT_INRANGE:
+      							   					Custom.showMessage("Заданная точка находится вне досягаемости");		
+      							   				break;
+      							   			}
+      							   		break;
+      							   }
+      							   pos = 0;
+      						   }
+      					   }
+      					   flgSpace = true;      					   
+      				   }else{
+      					   inStr += c;
+      					   flgSpace = false; 
+      					   flgFirstSpace = false;
+      				   }
+      				
+      			   }
+      		   }
+      	   } catch (IOException e) {
+      		   e.printStackTrace();
+      	   }
+    	}
     }
     boolean flgCom = false;
     public ClientSocket() {
     	 time.schedule(new TimerTask() {
  	        @Override
  	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
- 	        	if (flgOpenSocket){
- 	        		
- 	        	   if (!socket.isConnected()){
- 	        		   Custom.showMessage("Client disconnected");
- 	        		   closeSocket();
- 	        	   }else
- 	        	   try {
- 	        		   if(flgOpenSocket){
- 	        			 /* if (!fifo.isEmpty()){
- 	        				  test();  
- 	        				  try {
-								Thread.sleep(50);
-								
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
- 	        			   }*/
- 	        			   while(in.available()!=0){	        			   
- 	        				   char b = (char)in.readByte();
- 	        				  /* if (b=='c'){
- 	        					   flgCom = true;
- 	        				   }else if (b>='0'&&b<='9'&&flgCom){
- 	        					   flgCom = false;
- 	        					   int com = (byte)b-(byte)'0';
- 	        					   switch (com) {
- 							   		case 0:
- 							  //		if (!fifo.isEmpty())
- 							   	//			sendPackage(fifo.removeFirst());
- 							   		break;
- 	        					   }
- 	        				   }*/
- 	        				   System.out.print(b);
- 	        			   }
- 	        			   
- 	        		   }
- 	        	   } catch (IOException e) {
- 	        		   e.printStackTrace();
- 	        	   }
- 	        	}	
+ 	        		getChars();	
  	        }
- 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК))
- 	    
+ 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    
 	}
    
  
@@ -151,8 +207,12 @@ public class ClientSocket {
 	     }
 	}
 	void closeSocket(){
+		int [] arr  = {0,C_STOP,0,0,0,0,0,0,0};
+		getChars();
+		flush();
+		sendVals2(arr);
 		flgOpenSocket = false;
-		try {
+		try {			
 			in.close();
 			sin.close();
 			out.close();
@@ -164,8 +224,9 @@ public class ClientSocket {
 		}		
 		Custom.showMessage("Socket closed");
 	}
-	public void addJPoint(double j1,double j2,double j3,double j4,double j5,double j6,String type){
-		jp.add(j1,j2,j3,j4,j5,j6,type);
+	public void addJPoint(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
+		if (speed<=0) speed = 1;
+		jp.add(j1,j2,j3,j4,j5,j6,type,speed);
 	}
 	public void sendJPoints(){
 		ArrayList<String> lst = jp.getRequests();
@@ -182,15 +243,9 @@ public class ClientSocket {
 	}
 	public void test(){
 		if(flgOpenSocket)
-		try {
-			for (int i=0;i<4;i++){
-				out.writeByte((byte)'b');	
-			}	
-			out.flush();
-		} catch (IOException e) {
-			System.out.println("IO Error");
-			e.printStackTrace();
-		} 
+			System.out.println("Test Operation");
+		else
+			System.out.println("Socket is closed");	
 	}
 
 }

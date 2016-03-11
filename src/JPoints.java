@@ -5,13 +5,14 @@ public class JPoints {
 	private ArrayList <JPoint> pointList = new ArrayList<JPoint>();
 	
 	public class JPoint{
-		double j1;
-		double j2;
-		double j3;
-		double j4;
-		double j5;
-		double j6;
+		int j1;
+		int j2;
+		int j3;
+		int j4;
+		int j5;
+		int j6;
 		String type;
+		int speed;
 		public JPoint() {
 				this.j1 = 0;
 				this.j2 = 0;
@@ -19,42 +20,40 @@ public class JPoints {
 				this.j4 = 0;
 				this.j5 = 0;
 				this.j6 = 0;
+				this.speed = 1;
 				this.type = ABSOLUTE;
 		}
-		public JPoint(double j1,double j2,double j3,double j4,double j5,double j6,String type){
+		public JPoint(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
 			this.j1 = j1;
 			this.j2 = j2;
 			this.j3 = j3;
 			this.j4 = j4;
 			this.j5 = j5;
 			this.j6 = j6;
+			this.speed = speed;
 			this.type = type;
 		}
 	}
 
-	public void add(double j1,double j2,double j3,double j4,double j5,double j6,String type){
-		pointList.add(new JPoint(j1,j2,j3,j4,j5,j6,type));
+	public void add(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
+		pointList.add(new JPoint(j1,j2,j3,j4,j5,j6,type,speed));
 	}
 	public ArrayList <String> getRequests(){
 		if (pointList.size()!=0){
 			ArrayList <String> lst = new ArrayList<String>();
-			int i=0;
 			for (JPoint point:pointList){
-				String s = Custom.getVali(10000+i,6)+" 101 0000";
-				i++;
-				s = s+" "+Custom.getVald(point.j1);
-				s = s+" "+Custom.getVald(point.j2);
-				s = s+" "+Custom.getVald(point.j3);
-				s = s+" "+Custom.getVald(point.j4);
-				s = s+" "+Custom.getVald(point.j5);
-				s = s+" "+Custom.getVald(point.j6);
+				String s = "000000 000005";
+				s +=" "+Custom.getVali(point.speed,6);
+				s +=" "+Custom.getVali(point.j1,6);
+				s += " "+Custom.getVali(point.j2,6);
+				s += " "+Custom.getVali(point.j3,6);
+				s += " "+Custom.getVali(point.j4,6);
+				s += " "+Custom.getVali(point.j5,6);
+				s += " "+Custom.getVali(point.j6,6);
+				s += " ";
+				System.out.println("add: "+s);
 				lst.add(s);
-			}
-			String s = Custom.getVali(10000+i,6)+" 300 0000";
-			for (int j=0;j<6;j++){
-				s = s+" "+Custom.getVald(0);
-			}	
-			lst.add(s);
+			}			
 			return lst;
 		}else{
 			return null; 
