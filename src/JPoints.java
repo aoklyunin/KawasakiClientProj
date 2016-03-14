@@ -51,7 +51,7 @@ public class JPoints {
 				s += " "+Custom.getVali(point.j5,6);
 				s += " "+Custom.getVali(point.j6,6);
 				s += " ";
-				System.out.println("add: "+s);
+				//System.out.println("add: "+s);
 				lst.add(s);
 			}			
 			return lst;

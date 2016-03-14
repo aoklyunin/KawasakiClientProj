@@ -32,11 +32,16 @@ public class ClientGui extends JFrame {
 	KeyListener keyListener;
 
 	final Timer time = new Timer();
-	
+	final Timer timeSendC = new Timer();
+	int dCoordArr[] = new int[6];
     public void clearInputs(){
     	for (int j=0;j<inputsCnt;j++)
 			inputs[j].setText("");
     }
+    boolean isKeyDown[] = new boolean[5000];
+    int curPositions[] = new int [6];
+    boolean flgFirstGet = true;
+    
     // ñîçäà¸ì ñòðàíèöó äëÿ ðàáîòû ñ ïàêåòàìè
     public void createPackagePage(){
     	Container packagePage = new JPanel();
@@ -447,42 +452,23 @@ public class ClientGui extends JFrame {
 	keyListener = new KeyListener() {
 			
 			@Override
-			public void keyTyped(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
+			public void keyTyped(KeyEvent arg0) {	
+				if (flgFirstGet){	
+					flgFirstGet = false;
+					curPositions= client.getPositions();					
+				}
+				char c = arg0.getKeyChar();
+				isKeyDown[(int)c] = true;				
 			}
 			
 			@Override
 			public void keyReleased(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
+				char c = arg0.getKeyChar();	
+				isKeyDown[(int)c] = false;				
 			}
 			
 			@Override
 			public void keyPressed(KeyEvent arg0) {
-				byte arr[] = new byte[3];
-				// TODO Auto-generated method stub
-				switch(arg0.getKeyCode()){
-				case 87:
-					arr[ClientSocket.X_COORD]=10;
-					break;
-				case 83:
-					arr[ClientSocket.X_COORD]=-10;
-					break;
-				case 65:
-					arr[ClientSocket.Y_COORD]=10;
-					break;
-				case 68:
-					arr[ClientSocket.Y_COORD]=-10;
-					break;
-				case 81:
-					arr[ClientSocket.Z_COORD]=10;
-					break;
-				case 69:
-					arr[ClientSocket.Z_COORD]=-10;
-					break;
-				}
-				client.moveD(arr);
 			}
 		};
 	    
@@ -533,6 +519,46 @@ public class ClientGui extends JFrame {
         });
 		client = new ClientSocket();
 		client.openSocket(adressSocket.getText(),portSocet.getText());
+		timeSendC.schedule(new TimerTask() {
+ 	        @Override
+ 	        public void run() { //ÏÅÐÅÇÀÃÐÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎÐÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
+ 	        	dCoordArr = new int[6];
+ 	        	boolean flgCom = false;
+ 	        	int delta = 10;
+ 	        	if (isKeyDown[(int)'ö']||isKeyDown[(int)'w']){
+ 	        		dCoordArr[0]+=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'û']||isKeyDown[(int)'s']){
+ 	        		dCoordArr[0]-=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'ô']||isKeyDown[(int)'a']){
+ 	        		dCoordArr[1]+=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'â']||isKeyDown[(int)'d']){
+ 	        		dCoordArr[1]-=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'é']||isKeyDown[(int)'q']){
+ 	        		dCoordArr[2]+=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'ó']||isKeyDown[(int)'e']){
+ 	        		dCoordArr[2]-=delta;
+ 	        		flgCom=true;
+ 	        	}	 	        	
+ 	        	if (!flgFirstGet&&flgCom){
+ 	        		for(int i =0;i<3;i++){
+ 	        			curPositions[i]+=dCoordArr[i];
+ 	        		}
+ 	        		client.setDelta(dCoordArr,20);
+ 	        		//System.out.println(curPositions[0]+"  "+curPositions[1]+"  "+curPositions[2]);
+ 	        	}
+ 	        }
+ 	    }, 0, 500); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
+
 		time.schedule(new TimerTask() {
 	 	        @Override
 	 	        public void run() { //ÏÅÐÅÇÀÃÐÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎÐÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
@@ -550,10 +576,8 @@ public class ClientGui extends JFrame {
 	 	        		sensorValLables[i].setText(sensorVals[i]+"");
 	 	        	}
 	 	        }
-	 	    }, 100, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
-	
-	}
-    
+	 	    }, 0, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
+	}    
 	void defPackage(){
 		//int iArr[] = {242,3423,5212};
 		//double fArr[] = {123.7821,4234.0,123.12,23589.2,2344092.124879,532.129};

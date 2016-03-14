@@ -30,6 +30,10 @@ public class ClientSocket {
 	final static int C_HOME1 = 10; //выход в домашнюю зону 1
 	final static int C_HOME2 = 11;// выход в домашнюю зону 2
 	final static int C_ERR = 12; // ошибка
+	final static int С_DRAW = 13; //смещение
+	final static int C_SET_POS = 14; //задание по почте
+	final static int C_SET_DELTA_POS = 15;  // задание по смещению
+	
 	final static int ERR_INRANGE_J1 = 1; //до джоинта 1 не достать
 	final static int ERR_INRANGE_J2 = 2; //до джоинта 2 не достать
 	final static int ERR_INRANGE_J3 = 4; //до джоинта 3 не достать
@@ -80,18 +84,37 @@ public class ClientSocket {
     int positions[] = new int [6];
     
     public int [] getRotations(){
-    	return rotations;
+    	return Arrays.copyOf(rotations,6);
     }
     public int [] getPositions(){
-    	return positions;
+    	return Arrays.copyOf(positions,6);
     }
+    
     public void runInPointD(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
     	int [] arr  = {0,C_D_POINT,speed,j1,j2,j3,j4,j5,j6};   
     	sendVals2(arr);
     }
+    public void runInPointD(int[] arrIn,String type,int speed){
+    	int [] arr  = {0,C_D_POINT,speed,arrIn[0],arrIn[1],arrIn[2],arrIn[3],arrIn[4],arrIn[5]};   
+    	sendVals2(arr);
+    }
+    public void drawPointD(int[] arrIn,String type,int speed){
+    	int [] arr  = {0,С_DRAW,speed,arrIn[0],arrIn[1],arrIn[2],arrIn[3],arrIn[4],arrIn[5]};   
+    	sendVals2(arr);
+    }
+    
     public void runInPointA(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
     	int [] arr  = {0,C_J_POINT,speed,j1,j2,j3,j4,j5,j6};   
     	sendVals2(arr);
+    }
+     
+    public void setPoint(int [] coords, int speed){
+    	int [] arr  = {0,C_SET_POS,speed,coords[0],coords[1],coords[2],coords[3],coords[4],coords[5]};   
+    	sendVals2(arr);    	
+    }
+    public void setDelta(int [] coords, int speed){
+    	int [] arr  = {0,C_SET_DELTA_POS,speed,coords[0],coords[1],coords[2],coords[3],coords[4],coords[5]};   
+    	sendVals2(arr);    	
     }
     public void home1(int speed){
     	int [] arr  = {0,C_HOME1,speed,0,0,0,0,0,0};
@@ -115,6 +138,7 @@ public class ClientSocket {
       		   if(flgOpenSocket){ 	        			  
       			   while(in.available()!=0){	
       				   char c = (char)in.readByte();
+      				   
       				   if (c==' '){
       					   if (!flgSpace&&!flgFirstSpace){
       						   pos++;
@@ -166,30 +190,15 @@ public class ClientSocket {
  	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    
 	}
     
-    void moveD(byte[] arr){
+    void moveD(int[] arr){   
+    	System.out.println("arr:"+ arr[0]+" "+arr[1]+" "+arr[2]);
     	int [] positionsN = Arrays.copyOf(positions, 6);
     	boolean flgMove = false;
     	for (int i=0;i<3;i++){
-    		if (coordArr[i]==0){
-    			coordArr[i] = positions[i]+arr[i];
-    		}else{    			
-    			if (  arr[i]>0&&coordArr[i]<positions[i]+arr[i]
-    				  ||arr[i]<0&&coordArr[i]>positions[i]+arr[i]){
-    				flgMove = true;
-    			}else{
-    				arr[i] = 0;
-    			}
-    		}
+    		positionsN[i] = positions[i]+arr[i];
+    		runInPointD(positionsN[0], positionsN[1], positionsN[2], 
+    					positionsN[3], positionsN[4], positionsN[5], "", 10);
     	}
-    	if (flgMove){
-    		for (int i=0;i<3;i++){
-    		    	positionsN[i]+=arr[i];
-    		    	coordArr[i] = positionsN[i];
-    		    	runInPointD(positionsN[0], positionsN[1], positionsN[2], 
-    		    				positionsN[3], positionsN[4], positionsN[5], "", 10);
-    			}
-    				
-    	}    		
     }
    
     void stopSensor(){
@@ -217,6 +226,7 @@ public class ClientSocket {
 			sendPackage(s);
 		}
 	}
+	
 	void sendVals2(int []iVal){
 		if(flgOpenSocket){
 			String s="";
@@ -226,15 +236,19 @@ public class ClientSocket {
 			sendPackage(s);
 		}
 	}
+	String prevRec = "";
 	void sendPackage(String s){
+		//if(!s.equals(prevRec))
 		try {
-			System.out.println(s.length()+"");
-			System.out.println(s);
+			prevRec = s;
+			//System.out.println(s.length()+"");
+			//System.out.println(s);
 			for (int i=0;i<s.length();i++){
 				out.writeByte((byte)s.charAt(i));	
 			}		
+			
 			//out.writeUTF(s);
-			//System.out.println(s);
+			System.out.println("sended:"+s);
 		} catch (IOException e) {
 			System.out.println("IO Error");
 			e.printStackTrace();
