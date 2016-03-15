@@ -557,7 +557,7 @@ public class ClientGui extends JFrame {
  	        public void run() { //оепегюцпсфюел лернд RUN б йнрнпнл декюере рн врн бюл мюдн
  	        	dCoordArr = new int[6];
  	        	boolean flgCom = false;
- 	        	int delta = 5;
+ 	        	int delta = 10;
  	        	if (isKeyDown[(int)'Ж']||isKeyDown[(int)'w']){
  	        		dCoordArr[0]+=delta;
  	        		flgCom=true;
@@ -583,13 +583,17 @@ public class ClientGui extends JFrame {
  	        		flgCom=true;
  	        	}	
  	        	if(flgCom){
- 	        		if (flgFirstDeltaPos) 
- 	        			client.enableDelta();
+ 	        		if (flgFirstDeltaPos) {
+ 	               		client.enableDelta();
+ 	               		System.out.println("Delta Start works");
+ 	        		}
  	        		flgFirstDeltaPos = false;
- 	        		client.setDelta(dCoordArr,10);
+ 	        		client.setDelta(dCoordArr,15);
  	        	}else{
- 	        		if (!flgFirstDeltaPos)
- 	        			client.disableDelta();	
+ 	        		if (!flgFirstDeltaPos){
+ 	        			client.disableDelta();
+ 	        			System.out.println("Delta Stop works");
+ 	        		}
  	        		flgFirstDeltaPos = true;
  	        	}
  	        	

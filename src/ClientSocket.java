@@ -212,7 +212,7 @@ public class ClientSocket {
   	        	int [] arr  = {0,C_SENSOR_VALS,1, arrS[0]/100, arrS[1]/100, arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
   	        	sendVals2(arr);
   	        }
-  	    }, 100, 100);
+  	    }, 0, 200);
 	}
     
     void moveD(int[] arr){   
@@ -273,7 +273,7 @@ public class ClientSocket {
 	}
 	String prevRec = "";
 	void sendPackage(String s){
-		//if(!s.equals(prevRec))
+		
 		try {
 			prevRec = s;
 			//System.out.println(s.length()+"");
@@ -283,6 +283,7 @@ public class ClientSocket {
 			}		
 			
 			//out.writeUTF(s);
+			if(!s.contains("000000 000018 000001"))
 			System.out.println("sended:"+s);
 		} catch (IOException e) {
 			System.out.println("IO Error");
