@@ -460,7 +460,7 @@ public class ClientGui extends JFrame {
     	btnStartGravity.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				int arr [] = {150,150,0,0,0,0};
+				int arr [] = {100,100,100,0,0,0};
 				client.startGravityProgram(arr);
 			}	    	
 	    });	
