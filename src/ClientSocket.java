@@ -33,6 +33,11 @@ public class ClientSocket {
 	final static int С_DRAW = 13; //смещение
 	final static int C_SET_POS = 14; //задание по почте
 	final static int C_SET_DELTA_POS = 15;  // задание по смещению
+	final static int C_DELTA_POS_ENABLE = 16; // разрешаем смещение на условную единицу
+	final static int C_DELTA_POS_DISABLE = 17; // запрещаем смещение на условную единицу
+	final static int C_SENSOR_VALS = 18; // значения с сенсора
+	final static int C_START_GRAVITY_PROGRAM = 19; // программа гравитации
+	final static int C_GRAVITY_PROGRAM_OFF = 20; // программа гравитации
 	
 	final static int ERR_INRANGE_J1 = 1; //до джоинта 1 не достать
 	final static int ERR_INRANGE_J2 = 2; //до джоинта 2 не достать
@@ -54,6 +59,8 @@ public class ClientSocket {
 	
 	int port=40000;
 	final Timer time = new Timer();
+	final Timer sensorTime = new Timer();
+	
 	boolean flgOpenSocket = false;
 	
 	
@@ -121,6 +128,15 @@ public class ClientSocket {
 		sendVals2(arr);
     }
     
+    public void enableDelta(){
+    	int [] arr  = {0,C_DELTA_POS_ENABLE,1,2,0,0,0,0,0};   
+    	sendVals2(arr);  
+    }
+    public void disableDelta(){
+    	int [] arr  = {0,C_DELTA_POS_DISABLE,1,2,0,0,0,0,0};   
+    	sendVals2(arr);  
+    }
+    
     public void home2(int speed){
     	int [] arr  = {0,C_HOME2,speed,0,0,0,0,0,0};
 		sendVals2(arr);
@@ -182,12 +198,21 @@ public class ClientSocket {
     boolean flgCom = false;
     public ClientSocket() {
     	sensor = new Sensor();
+    	sensor.start(100);
     	 time.schedule(new TimerTask() {
  	        @Override
  	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
  	        		getChars();	
  	        }
- 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК)) 	    
+ 	    }, 100, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК))
+    	sensorTime.schedule(new TimerTask() {
+  	        @Override
+  	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
+  	        	int arrS[] = sensor.getVals();
+  	        	int [] arr  = {0,C_SENSOR_VALS,1, arrS[0]/100, arrS[1]/100, arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
+  	        	sendVals2(arr);
+  	        }
+  	    }, 100, 100);
 	}
     
     void moveD(int[] arr){   
@@ -199,6 +224,16 @@ public class ClientSocket {
     		runInPointD(positionsN[0], positionsN[1], positionsN[2], 
     					positionsN[3], positionsN[4], positionsN[5], "", 10);
     	}
+    }
+    
+    void startGravityProgram(int[]minVals){
+    	int [] arr  = {0,C_START_GRAVITY_PROGRAM,0,minVals[0],minVals[1],minVals[2],minVals[3],minVals[4],minVals[5]};
+		sendVals2(arr);
+    }
+    
+    void stopGravityProgram(){
+    	int [] arr  = {0,C_GRAVITY_PROGRAM_OFF,0,0,0,0,0,0,0};
+    	sendVals2(arr);
     }
    
     void stopSensor(){

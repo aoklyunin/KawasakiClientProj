@@ -41,6 +41,8 @@ public class ClientGui extends JFrame {
     boolean isKeyDown[] = new boolean[5000];
     int curPositions[] = new int [6];
     boolean flgFirstGet = true;
+    boolean flgFirstDeltaPos = false;
+    
     
     // ñîçäà¸ì ñòğàíèöó äëÿ ğàáîòû ñ ïàêåòàìè
     public void createPackagePage(){
@@ -444,6 +446,36 @@ public class ClientGui extends JFrame {
     	sensorLables[4].setText("Ty");
     	sensorLables[5].setText("Tz");    
     }
+    
+    public void createProgramPage(){    
+    	Container programPage = new JPanel();
+    	programPage.setLayout(null);
+    	Insets insets = programPage.getInsets();
+    	tabbedPane.addTab("Ïğîãğàììû" ,programPage);
+    	 // êíîïêà îòïğàâêè òî÷åê íà êîíòğîëëåğ
+    	programPage.add(btnStartGravity);
+    	Dimension size = btnStartGravity.getPreferredSize(); 
+    	btnStartGravity.setBounds(460 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnStartGravity.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int arr [] = {150,150,0,0,0,0};
+				client.startGravityProgram(arr);
+			}	    	
+	    });	
+    	size = btnStopGravity.getPreferredSize(); 
+    	btnStopGravity.setBounds(460 + insets.left, 80 + insets.top, 
+      	 	   100, size.height); 
+    	programPage.add(btnStopGravity);
+    	btnStopGravity.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.stopGravityProgram();
+			}	    	
+	    });		
+    }    
+    
 	public ClientGui() {
 		
 	    super("Simple Example");
@@ -509,6 +541,7 @@ public class ClientGui extends JFrame {
         createPositionPage();
         createAnglesPage();
         createSensorPage();
+        createProgramPage();
 		
 		this.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e){
@@ -524,7 +557,7 @@ public class ClientGui extends JFrame {
  	        public void run() { //ÏÅĞÅÇÀÃĞÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎĞÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
  	        	dCoordArr = new int[6];
  	        	boolean flgCom = false;
- 	        	int delta = 10;
+ 	        	int delta = 5;
  	        	if (isKeyDown[(int)'ö']||isKeyDown[(int)'w']){
  	        		dCoordArr[0]+=delta;
  	        		flgCom=true;
@@ -548,16 +581,26 @@ public class ClientGui extends JFrame {
  	        	if (isKeyDown[(int)'ó']||isKeyDown[(int)'e']){
  	        		dCoordArr[2]-=delta;
  	        		flgCom=true;
- 	        	}	 	        	
- 	        	if (!flgFirstGet&&flgCom){
+ 	        	}	
+ 	        	if(flgCom){
+ 	        		if (flgFirstDeltaPos) 
+ 	        			client.enableDelta();
+ 	        		flgFirstDeltaPos = false;
+ 	        		client.setDelta(dCoordArr,10);
+ 	        	}else{
+ 	        		if (!flgFirstDeltaPos)
+ 	        			client.disableDelta();	
+ 	        		flgFirstDeltaPos = true;
+ 	        	}
+ 	        	
+ 	        	/*if (!flgFirstGet&&flgCom){
  	        		for(int i =0;i<3;i++){
  	        			curPositions[i]+=dCoordArr[i];
- 	        		}
- 	        		client.setDelta(dCoordArr,20);
+ 	        		} 	        		
  	        		//System.out.println(curPositions[0]+"  "+curPositions[1]+"  "+curPositions[2]);
- 	        	}
+ 	        	}*/
  	        }
- 	    }, 0, 500); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅĞÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎĞßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
+ 	    }, 0, 150); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅĞÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎĞßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
 
 		time.schedule(new TimerTask() {
 	 	        @Override
@@ -661,4 +704,8 @@ public class ClientGui extends JFrame {
 	public JLabel [] jPosLables = new JLabel[6]; 
 	
 	final JTabbedPane tabbedPane = new JTabbedPane();
+	
+	private JButton btnStartGravity = new JButton("StartGravity");
+	private JButton btnStopGravity  = new JButton("StopGravity");
+	
 }
