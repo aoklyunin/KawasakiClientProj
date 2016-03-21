@@ -471,7 +471,7 @@ public class ClientGui extends JFrame {
     	btnStartGravity.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.startGravityProgram(arr);
+				client.startGravityProgram(Integer.parseInt(kPxEdit.getText()),Integer.parseInt(kPyEdit.getText()),Integer.parseInt(kPzEdit.getText()));
 			}	    	
 	    });	
     	size = btnStopGravity.getPreferredSize(); 
@@ -484,6 +484,26 @@ public class ClientGui extends JFrame {
 				client.stopGravityProgram();
 			}	    	
 	    });		
+    	size = kPx.getPreferredSize(); 
+    	kPx.setBounds(15 + insets.left, 15+ insets.top, 
+    			size.width, size.height);  
+    	kPy.setBounds(15 + insets.left, 35+ insets.top, 
+    			size.width, size.height); 
+    	kPz.setBounds(15 + insets.left, 55+ insets.top, 
+    			size.width, size.height); 
+    	size = kPxEdit.getPreferredSize(); 
+    	kPxEdit.setBounds(65 + insets.left, 15+ insets.top, 
+    			40, size.height);  
+    	kPyEdit.setBounds(65 + insets.left, 35+ insets.top, 
+    			40, size.height);  
+    	kPzEdit.setBounds(65 + insets.left, 55+ insets.top, 
+    			40, size.height); 
+    	programPage.add(kPx);
+    	programPage.add(kPy);
+    	programPage.add(kPz);
+    	programPage.add(kPxEdit);
+    	programPage.add(kPyEdit);
+    	programPage.add(kPzEdit);
     }    
     
 	public ClientGui() {
@@ -724,6 +744,12 @@ public class ClientGui extends JFrame {
 	
 	private JButton btnStartGravity = new JButton("StartGravity");
 	private JButton btnStopGravity  = new JButton("StopGravity");
-	private JLabel kPx = new Label("kPx");
+	private JLabel kPx = new JLabel("kPx");
+	private JLabel kPy = new JLabel("kPy");
+	private JLabel kPz = new JLabel("kPz");
+	
+	private JTextField kPxEdit = new JTextField("1",2);
+	private JTextField kPyEdit = new JTextField("1",2);
+	private JTextField kPzEdit = new JTextField("1",2);
 	
 }
