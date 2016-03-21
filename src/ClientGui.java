@@ -1,3 +1,8 @@
+/*  TODO:
+ *  1) кнопка остановки выполнения программы роботом
+ * 
+ * 
+ */
 
 import java.awt.*;
 import java.awt.event.*;
@@ -17,37 +22,27 @@ import java.util.TimerTask;
 
 import javax.security.auth.Subject;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.AbstractDocument.LeafElement;
 
 public class ClientGui extends JFrame {
-	final static int inputsCnt = 99; 
-	private JButton btnOpenSocket = new JButton("OpenSocket");
-	private JButton btnCloseSocket = new JButton("CloseSocket");
-	private JButton btnClearInputs = new JButton("ClearInputs");
-	private JButton btnSendPackage = new JButton("SendPackage");
-	
-	private JButton btnAddJPoint = new JButton("AddPoint");
-	private JButton btnSendJPoinst = new JButton("SendJPoint");
-	private JButton btnClearJPoinst = new JButton("ClearPoint");
-	private JButton btnInitInputs = new JButton("InitInputs");
-	
-	private JButton btnTest = new JButton("Test");
-	
-	private JTextField portSocet = new JTextField("40000", 5);
-	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
-	public JTextField [] inputs = new JTextField[inputsCnt];
-	public JButton [] buttons = new JButton[10];
-	private JLabel ipLabel = new JLabel();
-	
-	private JSlider [] sliders = new JSlider[6];
-	private JLabel[] slederLables = new JLabel[6];
-	
-	final JTabbedPane tabbedPane = new JTabbedPane();
+
 	ClientSocket client;
+	KeyListener keyListener;
+
+	final Timer time = new Timer();
+	final Timer timeSendC = new Timer();
+	int dCoordArr[] = new int[6];
     public void clearInputs(){
     	for (int j=0;j<inputsCnt;j++)
 			inputs[j].setText("");
     }
+    boolean isKeyDown[] = new boolean[5000];
+    int curPositions[] = new int [6];
+    boolean flgFirstGet = true;
+    boolean flgFirstDeltaPos = false;
+    JPanel content;
     // создаём страницу для работы с пакетами
     public void createPackagePage(){
     	Container packagePage = new JPanel();
@@ -66,7 +61,7 @@ public class ClientGui extends JFrame {
 	    packagePage.add(adressSocket);
     	Dimension size = adressSocket.getPreferredSize(); 
     	adressSocket.setBounds(130 + insets.left, 40 + insets.top, 
-                     size.width, size.height);
+    							size.width, size.height);
     	// поле ввода порта сокета
     	packagePage.add(portSocet);
     	size = portSocet.getPreferredSize(); 
@@ -86,7 +81,7 @@ public class ClientGui extends JFrame {
 	    // кнопка тест
     	packagePage.add(btnTest);
 	    size = btnTest.getPreferredSize(); 
-	    btnTest.setBounds(560+ insets.left, 10 + insets.top, 
+	    btnTest.setBounds(485+ insets.left, 40 + insets.top, 
                      	 size.width, size.height); 
 	    btnTest.addActionListener(new ActionListener(){
 			@Override
@@ -116,21 +111,7 @@ public class ClientGui extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				clearInputs();
 			}	    	
-	    });
-	    // кнопка очистки полей ввода
-	    packagePage.add(btnInitInputs);
-	    size = btnInitInputs.getPreferredSize(); 
-	    btnInitInputs.setBounds(520 + insets.left, 40 + insets.top, 
-                     	 size.width, size.height); 
-	    btnInitInputs.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				for (int i=0;i<45;i++){
-					inputs[i].setText(i+"");
-				}
-			}	    	
-	    });
-	    
+	    });	    
 	    // IP Адрес
 		try {
 			InetAddress IP = InetAddress.getLocalHost();
@@ -143,11 +124,29 @@ public class ClientGui extends JFrame {
 			e.printStackTrace();
 			Custom.showMessage("Не получилось определить IP");	
 		}
-		// кнопка закрытия сокета
-		packagePage.add(btnCloseSocket);
-	    size = btnCloseSocket.getPreferredSize(); 
-	    btnCloseSocket.setBounds(15 + insets.left, 45 + insets.top, 
-                     	 size.width, size.height);
+		  // кнопка очистки полей ввода
+	    packagePage.add(setFocusB);
+	    size = setFocusB.getPreferredSize(); 
+	    setFocusB.setBounds(470 + insets.left, 9 + insets.top, 
+                     	 size.width, size.height); 
+	    setFocusB.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+			      content.setFocusable(true);
+		          content.requestFocusInWindow();
+			}	    	
+	    });	    
+	    // поле положения
+	    packagePage.add(deltaSp);
+        size = deltaSp.getPreferredSize(); 
+    	deltaSp.setBounds(380 + insets.left, 10 + insets.top, 
+    							size.width, size.height);
+    	// поле скорости
+	    packagePage.add(deltaPos);
+    	size = deltaPos.getPreferredSize(); 
+    	deltaPos.setBounds(430 + insets.left, 10 + insets.top, 
+    							 size.width, size.height);
+		
     }
     public void createJoindPage(){    
     	Container joindPage = new JPanel();
@@ -157,7 +156,7 @@ public class ClientGui extends JFrame {
     	 // кнопка отправки точек на контроллер
     	joindPage.add(btnSendJPoinst);
     	Dimension size = btnSendJPoinst.getPreferredSize(); 
-	    btnSendJPoinst.setBounds(300 + insets.left, 50 + insets.top, 
+	    btnSendJPoinst.setBounds(460 + insets.left, 50 + insets.top, 
 	    					     100, size.height); 
 	    btnSendJPoinst.addActionListener(new ActionListener(){
 			@Override
@@ -168,7 +167,7 @@ public class ClientGui extends JFrame {
 	    // кнопка удаления всех точек
 	    joindPage.add(btnClearJPoinst);
 	    size = btnClearJPoinst.getPreferredSize(); 
-	    btnClearJPoinst.setBounds(300 + insets.left, 110 + insets.top, 
+	    btnClearJPoinst.setBounds(460 + insets.left, 110 + insets.top, 
 	    					   100, size.height); 
 	    btnClearJPoinst.addActionListener(new ActionListener(){
 			@Override
@@ -179,20 +178,23 @@ public class ClientGui extends JFrame {
 	    // кнопка добавления точек поворота
 	    joindPage.add(btnAddJPoint);
 	    size = btnAddJPoint.getPreferredSize(); 
-	    btnAddJPoint.setBounds(300 + insets.left, 80 + insets.top, 
+	    btnAddJPoint.setBounds(460 + insets.left, 80 + insets.top, 
                      	 	   100, size.height); 
 	    btnAddJPoint.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.addJPoint((double)sliders[0].getValue(),
-							     (double)sliders[1].getValue(),
-							     (double)sliders[2].getValue(),
-							     (double)sliders[3].getValue(),
-							     (double)sliders[4].getValue(),
-							     (double)sliders[5].getValue(),JPoints.ABSOLUTE);
+				client.addJPoint(sliders[0].getValue(),
+							     sliders[1].getValue(),
+							     sliders[2].getValue(),
+							     sliders[3].getValue(),
+							     sliders[4].getValue(),
+							     sliders[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(jSpeedInput.getText()));
 			}	    	
-	    });
-	  
+	    });	  
+	    size = jSpeedInput.getPreferredSize(); 
+	    jSpeedInput.setBounds(460 + insets.left, 140 + insets.top, 
+      	 	   100, size.height); 
+    	joindPage.add(jSpeedInput);
 	    // слайдеры
 	    for (int i=0;i<6;i++){
 	    	sliders[i] = new JSlider(-360, 360, 0);
@@ -204,32 +206,435 @@ public class ClientGui extends JFrame {
 	    	sliders[i].setPaintTrack(true);
 	    	sliders[i].setAutoscrolls(true);
 	    	size = sliders[i].getPreferredSize(); 
-	    	sliders[i].setBounds(30 + insets.left, 15+i*50 + insets.top, 
+	    	sliders[i].setBounds(30 + insets.left, 40+i*50 + insets.top, 
                      	 230, size.height);
+	    	final int pos = i;
+	    	sliders[pos].addChangeListener(new ChangeListener() {				
+				@Override
+				public void stateChanged(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+					sliderVals[pos].setText(sliders[pos].getValue()+"");
+				}
+			});
 	    	slederLables[i] = new JLabel("j"+i);
 	    	size = slederLables[i].getPreferredSize(); 
-	    	slederLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
+	    	slederLables[i].setBounds(10 + insets.left, 40+i*50 + insets.top, 
                 	 230, size.height);
 	    	joindPage.add(slederLables[i]);
+	    	sliderVals[i] = new JLabel("0");
+	    	size = sliderVals[i].getPreferredSize(); 
+	    	sliderVals[i].setBounds(280 + insets.left, 40+i*50 + insets.top, 
+                	 230, size.height);
+	    	joindPage.add(sliderVals[i]);	    	
 	    }
-	    
+	    // монитор положений
+	    for (int i=0;i<6;i++){
+	    	jPosLables[i] = new JLabel("0");
+	    	size = jPosLables[i].getPreferredSize(); 
+	    	jPosLables[i].setBounds(320 + insets.left, 40+i*50 + insets.top, 
+                	 230, size.height);
+	    	joindPage.add(jPosLables[i]);
+	    	limitLables[i] = new JLabel("["+ClientSocket.ULIMIMT[i]+":"+ClientSocket.LLIMIMT[i]+"]");
+	    	size = limitLables[i].getPreferredSize(); 
+	    	limitLables[i].setBounds(360 + insets.left, 40+i*50 + insets.top, 
+                	 230, size.height);
+	    	joindPage.add(limitLables[i]);
+	    }  	    
     }
+    
+    
+    public void createPositionPage(){    
+    	Container positionPage = new JPanel();
+    	positionPage.setLayout(null);
+    	Insets insets = positionPage.getInsets();
+    	tabbedPane.addTab("Декард" ,positionPage);
+    	 // кнопка отправки точек на контроллер
+    	positionPage.add(btnSendPosition);
+    	Dimension size = btnSendPosition.getPreferredSize(); 
+    	btnSendPosition.setBounds(460 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnSendPosition.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.runInPointD(slidersPos[0].getValue(),
+								   slidersPos[1].getValue(),
+								   slidersPos[2].getValue(),
+								   slidersPos[3].getValue(),
+								   slidersPos[4].getValue(),
+								   slidersPos[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(dSpeedInput.getText()));
+			}	    	
+	    });	
+    	size = dSpeedInput.getPreferredSize(); 
+    	dSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
+      	 	   100, size.height); 
+    	positionPage.add(dSpeedInput);
+  
+    	
+    	positionPage.add(btnHome1);
+    	size = btnHome1.getPreferredSize(); 
+    	btnHome1.setBounds(20 + insets.left, 350 + insets.top, 
+    								size.width, size.height); 
+    	btnHome1.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.home1(Integer.parseInt(dSpeedInput.getText()));
+			}	    	
+	    });	
+    	
+    	
+    	positionPage.add(btnHome2);
+    	size = btnHome2.getPreferredSize(); 
+    	btnHome2.setBounds(100 + insets.left, 350 + insets.top, 
+    								size.width, size.height); 
+    	btnHome2.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.home2(Integer.parseInt(dSpeedInput.getText()));
+			}	    	
+	    });	
+    	
+    	sledersPosLables[0] = new JLabel("x");
+    	sledersPosLables[1] = new JLabel("y");
+    	sledersPosLables[2] = new JLabel("z");
+    	sledersPosLables[3] = new JLabel("a");
+    	sledersPosLables[4] = new JLabel("o");
+    	sledersPosLables[5] = new JLabel("t");
+	    // слайдеры
+	    for (int i=0;i<6;i++){
+	    	slidersPos[i] = new JSlider(-1000, 1000, 0);
+	    	positionPage.add(slidersPos[i]);
+	    	slidersPos[i].setMajorTickSpacing(500);
+	    	slidersPos[i].setMinorTickSpacing(250);
+	    	slidersPos[i].setPaintLabels(true);
+	    	slidersPos[i].setPaintTicks(true);
+	    	slidersPos[i].setPaintTrack(true);
+	    	slidersPos[i].setAutoscrolls(true);
+	    	size = slidersPos[i].getPreferredSize(); 
+	    	slidersPos[i].setBounds(30 + insets.left, 15+i*50 + insets.top, 
+                     	 230, size.height);
+	    	size = sledersPosLables[i].getPreferredSize(); 
+	    	sledersPosLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	positionPage.add(sledersPosLables[i]);
+	    	final int pos = i;
+	    	slidersPos[pos].addChangeListener(new ChangeListener() {				
+				@Override
+				public void stateChanged(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+					slierDekartVals[pos].setText(slidersPos[pos].getValue()+"");
+				}
+			});
+	    	slierDekartVals[i] = new JLabel("0");
+	    	size = slierDekartVals[i].getPreferredSize(); 
+	    	slierDekartVals[i].setBounds(280 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	positionPage.add(slierDekartVals[i]);
+	    	slierDekartPoss[i] = new JLabel("0");
+	    	size = slierDekartPoss[i].getPreferredSize(); 
+	    	slierDekartPoss[i].setBounds(310 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	positionPage.add(slierDekartPoss[i]);
+	    }	
+    }    
+   
+
+    public void createAnglesPage(){    
+    	Container anglesPage = new JPanel();
+    	anglesPage.setLayout(null);
+    	Insets insets = anglesPage.getInsets();
+    	tabbedPane.addTab("Углы" ,anglesPage);
+    	 // кнопка отправки точек на контроллер
+    	anglesPage.add(btnSendAngles);
+    	Dimension size = btnSendAngles.getPreferredSize(); 
+    	btnSendAngles.setBounds(460 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnSendAngles.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.runInPointA(slidersAngle[0].getValue(),
+									slidersAngle[1].getValue(),
+									slidersAngle[2].getValue(),
+									slidersAngle[3].getValue(),
+									slidersAngle[4].getValue(),
+									slidersAngle[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(aSpeedInput.getText()));
+			}	    	
+	    });	
+    	size = aSpeedInput.getPreferredSize(); 
+    	aSpeedInput.setBounds(460 + insets.left, 80 + insets.top, 
+      	 	   100, size.height); 
+    	anglesPage.add(aSpeedInput);
+	    // слайдеры
+	    for (int i=0;i<6;i++){
+	    	slidersAngle[i] = new JSlider(ClientSocket.LLIMIMT[i], ClientSocket.ULIMIMT[i], 0);
+	    	anglesPage.add(slidersAngle[i]);
+	    	int ln = ClientSocket.ULIMIMT[i]-ClientSocket.LLIMIMT[i];
+	    	slidersAngle[i].setMajorTickSpacing(ln/4);
+	    	slidersAngle[i].setMinorTickSpacing(ln/8);
+	    	slidersAngle[i].setPaintLabels(true);
+	    	slidersAngle[i].setPaintTicks(true);
+	    	slidersAngle[i].setPaintTrack(true);
+	    	slidersAngle[i].setAutoscrolls(true);
+	    	size = slidersAngle[i].getPreferredSize(); 
+	    	slidersAngle[i].setBounds(30 + insets.left, 15+i*50 + insets.top, 
+                     	 230, size.height);
+	    	sledersAngleLables[i] = new JLabel("j"+i);
+	    	size = sledersAngleLables[i].getPreferredSize(); 
+	    	sledersAngleLables[i].setBounds(10 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	
+	    	anglesPage.add(sledersAngleLables[i]);
+	    	final int pos = i;
+	    	slidersAngle[pos].addChangeListener(new ChangeListener() {				
+				@Override
+				public void stateChanged(ChangeEvent arg0) {
+					// TODO Auto-generated method stub
+					slierAngleVals[pos].setText(slidersAngle[pos].getValue()+"");
+				}
+			});
+	    	slierAngleVals[i] = new JLabel("0");
+	    	size = slierAngleVals[i].getPreferredSize(); 
+	    	slierAngleVals[i].setBounds(280 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	anglesPage.add(slierAngleVals[i]);
+	    	slierAnglePoss[i] = new JLabel("0");
+	    	size = slierAnglePoss[i].getPreferredSize(); 
+	    	slierAnglePoss[i].setBounds(310 + insets.left, 15+i*50 + insets.top, 
+	            	 230, size.height);
+	    	anglesPage.add(slierAnglePoss[i]);
+	    }	
+    }    
+    
+    public void createSensorPage(){
+    	Container sensorPage = new JPanel();
+    	sensorPage.setLayout(null);
+    	Insets insets = sensorPage.getInsets();
+    	tabbedPane.addTab("Датчик" ,sensorPage);
+    	 // кнопка отправки точек на контроллер
+    	sensorPage.add(btnStartSensor);
+    	Dimension size = btnStartSensor.getPreferredSize(); 
+    	btnStartSensor.setBounds(20 + insets.left, 20 + insets.top, 
+    								size.width, size.height); 
+    	btnStartSensor.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.startSensor();
+			}	    	
+	    });	
+    	sensorPage.add(btnStopSensor);
+    	size = btnStopSensor.getPreferredSize(); 
+    	btnStopSensor.setBounds(20 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnStopSensor.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.stopSensor();
+			}	    	
+	    });	
+    	
+    	for (int i=0;i<6;i++){
+    		sensorLables[i] = new JLabel();
+    		sensorLables[i] = new JLabel("j"+i);
+        	size = sensorLables[i].getPreferredSize(); 
+        	sensorLables[i].setBounds(120 + insets.left, 15+i*50 + insets.top, 
+                	 230, size.height);        	
+        	sensorPage.add(sensorLables[i]);
+        	sensorProgress[i]=new JProgressBar();
+        	size = sensorProgress[i].getPreferredSize(); 
+        	sensorProgress[i].setBounds(170 + insets.left, 15+i*50 + insets.top, 
+                	                   230, size.height);  
+        	sensorPage.add(sensorProgress[i]);
+        	sensorProgress[i].setMaximum(500000);
+        	sensorValLables[i] = new JTextField("0");
+        	size = sensorValLables[i].getPreferredSize(); 
+        	sensorValLables[i].setBounds(400 + insets.left, 15+i*50 + insets.top, 
+                	                   80, size.height);  
+        	sensorPage.add(sensorValLables[i]);
+    	}
+    	sensorLables[0].setText("Fx");
+    	sensorLables[1].setText("Fy");
+    	sensorLables[2].setText("Fz");
+    	sensorLables[3].setText("Tx");
+    	sensorLables[4].setText("Ty");
+    	sensorLables[5].setText("Tz");    
+    }
+    
+    public void createProgramPage(){    
+    	Container programPage = new JPanel();
+    	programPage.setLayout(null);
+    	Insets insets = programPage.getInsets();
+    	tabbedPane.addTab("Программы" ,programPage);
+    	 // кнопка отправки точек на контроллер
+    	programPage.add(btnStartGravity);
+    	Dimension size = btnStartGravity.getPreferredSize(); 
+    	btnStartGravity.setBounds(460 + insets.left, 50 + insets.top, 
+    								size.width, size.height); 
+    	btnStartGravity.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.startGravityProgram(arr);
+			}	    	
+	    });	
+    	size = btnStopGravity.getPreferredSize(); 
+    	btnStopGravity.setBounds(460 + insets.left, 80 + insets.top, 
+      	 	   100, size.height); 
+    	programPage.add(btnStopGravity);
+    	btnStopGravity.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.stopGravityProgram();
+			}	    	
+	    });		
+    }    
+    
 	public ClientGui() {
+		
 	    super("Simple Example");
 	    this.setBounds(100,100,660,480);
 	    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	keyListener = new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent arg0) {	
+				if (flgFirstGet){	
+					flgFirstGet = false;
+					curPositions= client.getPositions();					
+				}
+				char c = arg0.getKeyChar();
+				isKeyDown[(int)c] = true;				
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				char c = arg0.getKeyChar();	
+				isKeyDown[(int)c] = false;				
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+			}
+		};
+	    
 	    // Контейнер        
-        JPanel content = new JPanel();
-        content.setLayout(new BorderLayout());
+        content = new JPanel();
         
+        ChangeListener changeListener = new ChangeListener() {
+            public void stateChanged(ChangeEvent changeEvent) {
+              JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
+              switch(sourceTabbedPane.getSelectedIndex()){
+              case 2:
+            	  	int [] arr = client.getPositions();
+            		for (int i=0;i<6;i++){
+            			slidersPos[i].setValue(arr[i]);
+            		}
+            		break;
+              case 3:
+            		int [] arr2 = client.getRotations();
+    				for (int i=0;i<6;i++){
+    					slidersAngle[i].setValue(arr2[i]);
+    				}
+            	  	break;
+              }              
+            }
+          };
+          tabbedPane.addChangeListener(changeListener);
+          
+          content.setFocusable(true);
+          content.requestFocusInWindow();
+        content.setLayout(new BorderLayout());
+        content.addKeyListener(keyListener);
         getContentPane().add(content);
         content.add(tabbedPane);
         
+  
         createPackagePage();
         createJoindPage();
-      
+        createPositionPage();
+        createAnglesPage();
+        createSensorPage();
+        createProgramPage();
+		
+		this.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+            	if (client.flgOpenSocket)
+            		client.closeSocket();
+            	client.stopSensor();
+            }
+        });
 		client = new ClientSocket();
-	}
+		client.openSocket(adressSocket.getText(),portSocet.getText());
+		timeSendC.schedule(new TimerTask() {
+ 	        @Override
+ 	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
+ 	        	dCoordArr = new int[6];
+ 	        	boolean flgCom = false;
+ 	        	int delta = Integer.parseInt(deltaPos.getText());
+ 	        	if (isKeyDown[(int)'ц']||isKeyDown[(int)'w']){
+ 	        		dCoordArr[0]+=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'ы']||isKeyDown[(int)'s']){
+ 	        		dCoordArr[0]-=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'ф']||isKeyDown[(int)'a']){
+ 	        		dCoordArr[1]+=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'в']||isKeyDown[(int)'d']){
+ 	        		dCoordArr[1]-=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'й']||isKeyDown[(int)'q']){
+ 	        		dCoordArr[2]+=delta;
+ 	        		flgCom=true;
+ 	        	}
+ 	        	if (isKeyDown[(int)'у']||isKeyDown[(int)'e']){
+ 	        		dCoordArr[2]-=delta;
+ 	        		flgCom=true;
+ 	        	}	
+ 	        	if(flgCom){
+ 	        		if (flgFirstDeltaPos) {
+ 	               		client.enableDelta();
+ 	               		System.out.println("Delta Start works");
+ 	        		}
+ 	        		flgFirstDeltaPos = false;
+ 	        		client.setDelta(dCoordArr,15);
+ 	        	}else{
+ 	        		if (!flgFirstDeltaPos){
+ 	        			client.disableDelta();
+ 	        			System.out.println("Delta Stop works");
+ 	        		}
+ 	        		flgFirstDeltaPos = true;
+ 	        	}
+ 	        	
+ 	        	/*if (!flgFirstGet&&flgCom){
+ 	        		for(int i =0;i<3;i++){
+ 	        			curPositions[i]+=dCoordArr[i];
+ 	        		} 	        		
+ 	        		//System.out.println(curPositions[0]+"  "+curPositions[1]+"  "+curPositions[2]);
+ 	        	}*/
+ 	        }
+ 	    }, 0, 150); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК))
+
+		time.schedule(new TimerTask() {
+	 	        @Override
+	 	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
+	 	        	int [] paramsJ = client.getRotations();
+	 	        	int [] paramsD = client.getPositions();
+	 	        	int [] sensorVals = client.getSensorVals();
+	 	        	for (int i=0;i<6;i++){
+	 	        		jPosLables[i].setText(paramsJ[i]+"");
+	 	        		slierDekartPoss[i].setText(paramsD[i]+"");
+	 	        		if ( sensorVals[i] < 0)
+	 	        			sensorProgress[i].setForeground( Color.blue );
+	                    else
+	                    	sensorProgress[i].setForeground( Color.green );
+	 	        		sensorProgress[i].setValue(Math.abs(sensorVals[i]));
+	 	        		sensorValLables[i].setText(sensorVals[i]+"");
+	 	        	}
+	 	        }
+	 	    }, 0, 100); //(4000 - ПОДОЖДАТЬ ПЕРЕД НАЧАЛОМ В МИЛИСЕК, ПОВТОРЯТСЯ 4 СЕКУНДЫ (1 СЕК = 1000 МИЛИСЕК))
+	}    
 	void defPackage(){
 		//int iArr[] = {242,3423,5212};
 		//double fArr[] = {123.7821,4234.0,123.12,23589.2,2344092.124879,532.129};
@@ -257,13 +662,68 @@ public class ClientGui extends JFrame {
 				//client.sendVals(iArr,fArr);
 				client.sendVals2(iArr);
 			}		
-		}
-		
-	}
-	
+		}	
+	}	
 	
 	public static void main(String[] args) {
 		ClientGui app = new ClientGui();
 		app.setVisible(true);
 	}
+	
+	// элементы вкладки "пакеты
+	private JButton btnOpenSocket = new JButton("OpenSocket");
+	private JButton btnCloseSocket = new JButton("CloseSocket");
+	private JButton btnClearInputs = new JButton("ClearInputs");
+	private JButton btnSendPackage = new JButton("SendPackage");
+	private JTextField portSocet = new JTextField("40000", 5);
+	private JTextField adressSocket = new JTextField("192.168.1.0", 8);
+	final static int inputsCnt = 99;	
+	private JTextField [] inputs = new JTextField[inputsCnt];
+	private JButton btnTest = new JButton("Test");
+	private JLabel ipLabel = new JLabel();	
+	private JTextField deltaSp  = new JTextField("10", 3);
+	private JTextField deltaPos = new JTextField("5", 3);
+	private JButton setFocusB = new JButton("SetFocus");
+	// элементы вкладки джоиндов
+	private JButton btnAddJPoint = new JButton("AddPoint");
+	private JButton btnSendJPoinst = new JButton("SendJPoint");
+	private JButton btnClearJPoinst = new JButton("ClearPoint");	
+
+	private JButton [] buttons = new JButton[10];
+	private JSlider [] sliders = new JSlider[6];
+	private JLabel[] sliderVals = new JLabel[6];
+	private JLabel[] slederLables = new JLabel[6];
+	private JLabel[] limitLables = new JLabel[6];
+	private JTextField jSpeedInput = new JTextField("10");
+	// элементы вкладки позиций
+	private JSlider [] slidersPos = new JSlider[6];
+	private JLabel[] sledersPosLables = new JLabel[6];
+	private JLabel[] slierDekartVals = new JLabel[6];
+	private JLabel[] slierDekartPoss = new JLabel[6];
+	private JButton btnHome1 = new JButton("Home1");
+	private JButton btnHome2 = new JButton("Home2");
+	private JTextField dSpeedInput = new JTextField("10");
+	private JButton btnSendPosition = new JButton("SendPosition");
+	// элементы вкладки углов
+	private JSlider [] slidersAngle = new JSlider[6];
+	private JLabel[] sledersAngleLables = new JLabel[6];
+	private JLabel[] slierAngleVals = new JLabel[6];
+	private JLabel[] slierAnglePoss = new JLabel[6];
+	private JTextField aSpeedInput = new JTextField("10");
+	private JButton btnSendAngles = new JButton("SendPosition");
+	// элементы вкладки датчика
+	private JButton btnStartSensor = new JButton("Start");
+	private JButton btnStopSensor = new JButton("Stop");
+	private JProgressBar [] sensorProgress = new JProgressBar[6];
+	private JLabel[] sensorLables = new JLabel[6];
+	private JTextField[] sensorValLables = new JTextField[6];
+	// элементы обратной связи
+	public JLabel [] jPosLables = new JLabel[6]; 
+	
+	final JTabbedPane tabbedPane = new JTabbedPane();
+	
+	private JButton btnStartGravity = new JButton("StartGravity");
+	private JButton btnStopGravity  = new JButton("StopGravity");
+	private JLabel kPx = new Label("kPx");
+	
 }
