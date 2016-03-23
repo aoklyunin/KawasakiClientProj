@@ -464,26 +464,36 @@ public class ClientGui extends JFrame {
     	Insets insets = programPage.getInsets();
     	tabbedPane.addTab("Программы" ,programPage);
     	 // кнопка отправки точек на контроллер
-    	programPage.add(btnStartGravity);
     	Dimension size = btnStartGravity.getPreferredSize(); 
     	btnStartGravity.setBounds(460 + insets.left, 50 + insets.top, 
     								size.width, size.height); 
     	btnStartGravity.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.startGravityProgram(Integer.parseInt(kPxEdit.getText()),Integer.parseInt(kPyEdit.getText()),Integer.parseInt(kPzEdit.getText()));
+				client.setGravityParams(Integer.parseInt(accelEdit.getText()),
+										Integer.parseInt(decelEdit.getText()),
+										Integer.parseInt(speedEdit.getText()),
+										Integer.parseInt(deltaEdit.getText()));
+				client.startGravityProgram(Integer.parseInt(kPxEdit.getText()),
+										   Integer.parseInt(kPyEdit.getText()),
+										   Integer.parseInt(kPzEdit.getText()),
+										   Integer.parseInt(kIxEdit.getText()),
+										   Integer.parseInt(kIyEdit.getText()),
+										   Integer.parseInt(kIzEdit.getText()));
+				client.openLog("1.txt");
 			}	    	
 	    });	
     	size = btnStopGravity.getPreferredSize(); 
     	btnStopGravity.setBounds(460 + insets.left, 80 + insets.top, 
       	 	   100, size.height); 
-    	programPage.add(btnStopGravity);
+    	
     	btnStopGravity.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				client.stopGravityProgram();
+				client.closeLog();
 			}	    	
-	    });		
+	    });	
     	size = kPx.getPreferredSize(); 
     	kPx.setBounds(15 + insets.left, 15+ insets.top, 
     			size.width, size.height);  
@@ -498,12 +508,115 @@ public class ClientGui extends JFrame {
     			40, size.height);  
     	kPzEdit.setBounds(65 + insets.left, 55+ insets.top, 
     			40, size.height); 
+    	
+    	size = kIx.getPreferredSize(); 
+    	kIx.setBounds(140 + insets.left, 15+ insets.top, 
+    			size.width, size.height);  
+    	kIy.setBounds(140 + insets.left, 35+ insets.top, 
+    			size.width, size.height); 
+    	kIz.setBounds(140 + insets.left, 55+ insets.top, 
+    			size.width, size.height); 
+    	size = kIxEdit.getPreferredSize(); 
+    	kIxEdit.setBounds(185 + insets.left, 15+ insets.top, 
+    			40, size.height);  
+    	kIyEdit.setBounds(185 + insets.left, 35+ insets.top, 
+    			40, size.height);  
+    	kIzEdit.setBounds(185 + insets.left, 55+ insets.top, 
+    			40, size.height);     	
+    	
+    	size = kPMx.getPreferredSize(); 
+    	kPMx.setBounds(15 + insets.left, 95+ insets.top, 
+    			size.width, size.height);  
+    	kPMy.setBounds(15 + insets.left, 115+ insets.top, 
+    			size.width, size.height); 
+    	kPMz.setBounds(15 + insets.left, 135+ insets.top, 
+    			size.width, size.height); 
+    	size = kPMxEdit.getPreferredSize(); 
+    	kPMxEdit.setBounds(65 + insets.left, 95+ insets.top, 
+    			40, size.height);  
+    	kPMyEdit.setBounds(65 + insets.left, 115+ insets.top, 
+    			40, size.height);  
+    	kPMzEdit.setBounds(65 + insets.left, 135+ insets.top, 
+    			40, size.height); 
+    	
+    	size = kIMx.getPreferredSize(); 
+    	kIMx.setBounds(140 + insets.left, 95+ insets.top, 
+    			size.width, size.height);  
+    	kIMy.setBounds(140 + insets.left, 115+ insets.top, 
+    			size.width, size.height); 
+    	kIMz.setBounds(140 + insets.left, 135+ insets.top, 
+    			size.width, size.height); 
+    	size = kIxEdit.getPreferredSize(); 
+    	kIMxEdit.setBounds(185 + insets.left, 95+ insets.top, 
+    			40, size.height);  
+    	kIMyEdit.setBounds(185 + insets.left, 115+ insets.top, 
+    			40, size.height);  
+    	kIMzEdit.setBounds(185 + insets.left, 135+ insets.top, 
+    			40, size.height);     	
+    	
+    	size = accelLabel.getPreferredSize(); 
+    	accelLabel.setBounds(60 + insets.left, 180+ insets.top, 
+    			size.width, size.height);  
+    	size = decelLabel.getPreferredSize(); 
+    	decelLabel.setBounds(60 + insets.left, 205+ insets.top, 
+    			size.width, size.height);  
+    	size = speedLabel.getPreferredSize(); 
+    	speedLabel.setBounds(60 + insets.left, 230+ insets.top, 
+    			size.width, size.height);  
+    	size = deltaLabel.getPreferredSize(); 
+    	deltaLabel.setBounds(60 + insets.left, 255+ insets.top, 
+    			size.width, size.height);  
+    	
+    	
+    	size = accelEdit.getPreferredSize(); 
+    	accelEdit.setBounds(160 + insets.left, 180+ insets.top, 
+    			size.width, size.height);  
+    	size = decelEdit.getPreferredSize(); 
+    	decelEdit.setBounds(160 + insets.left, 205+ insets.top, 
+    			size.width, size.height);  
+    	size = speedEdit.getPreferredSize(); 
+    	speedEdit.setBounds(160 + insets.left, 230+ insets.top, 
+    			size.width, size.height);  
+    	size = deltaEdit.getPreferredSize(); 
+    	deltaEdit.setBounds(160 + insets.left, 255+ insets.top, 
+    			size.width, size.height);  
+    	
+    	
+    	programPage.add(accelEdit);
+    	programPage.add(decelEdit);
+    	programPage.add(speedEdit);
+    	programPage.add(deltaEdit);
+    	programPage.add(accelLabel);
+    	programPage.add(decelLabel);
+    	programPage.add(speedLabel);
+    	programPage.add(deltaLabel);
+    	programPage.add(btnStopGravity);
+    	programPage.add(btnStartGravity);
     	programPage.add(kPx);
     	programPage.add(kPy);
     	programPage.add(kPz);
     	programPage.add(kPxEdit);
     	programPage.add(kPyEdit);
     	programPage.add(kPzEdit);
+    	programPage.add(kIx);
+    	programPage.add(kIy);
+    	programPage.add(kIz);
+    	programPage.add(kIxEdit);
+    	programPage.add(kIyEdit);
+    	programPage.add(kIzEdit);
+    	programPage.add(kPMx);
+    	programPage.add(kPMy);
+    	programPage.add(kPMz);
+    	programPage.add(kPMxEdit);
+    	programPage.add(kPMyEdit);
+    	programPage.add(kPMzEdit);
+    	programPage.add(kIMx);
+    	programPage.add(kIMy);
+    	programPage.add(kIMz);
+    	programPage.add(kIMxEdit);
+    	programPage.add(kIMyEdit);
+    	programPage.add(kIMzEdit);
+    	
     }    
     
 	public ClientGui() {
@@ -744,6 +857,7 @@ public class ClientGui extends JFrame {
 	
 	private JButton btnStartGravity = new JButton("StartGravity");
 	private JButton btnStopGravity  = new JButton("StopGravity");
+	
 	private JLabel kPx = new JLabel("kPx");
 	private JLabel kPy = new JLabel("kPy");
 	private JLabel kPz = new JLabel("kPz");
@@ -751,5 +865,39 @@ public class ClientGui extends JFrame {
 	private JTextField kPxEdit = new JTextField("1",2);
 	private JTextField kPyEdit = new JTextField("1",2);
 	private JTextField kPzEdit = new JTextField("1",2);
+
+	private JLabel kIx = new JLabel("kIx");
+	private JLabel kIy = new JLabel("kIy");
+	private JLabel kIz = new JLabel("kIz");
+	
+	private JTextField kIxEdit = new JTextField("1",2);
+	private JTextField kIyEdit = new JTextField("1",2);
+	private JTextField kIzEdit = new JTextField("1",2);
+	
+	private JLabel kPMx = new JLabel("kPMx");
+	private JLabel kPMy = new JLabel("kPMy");
+	private JLabel kPMz = new JLabel("kPMz");
+	
+	private JTextField kPMxEdit = new JTextField("1",2);
+	private JTextField kPMyEdit = new JTextField("1",2);
+	private JTextField kPMzEdit = new JTextField("1",2);
+	
+	private JLabel kIMx = new JLabel("kIMx");
+	private JLabel kIMy = new JLabel("kIMy");
+	private JLabel kIMz = new JLabel("kIMz");
+	
+	private JTextField kIMxEdit = new JTextField("1",2);
+	private JTextField kIMyEdit = new JTextField("1",2);
+	private JTextField kIMzEdit = new JTextField("1",2);
+	
+	private JTextField accelEdit = new JTextField("40",3);
+	private JTextField decelEdit = new JTextField("40",3);
+	private JTextField speedEdit = new JTextField("10",3);
+	private JTextField deltaEdit = new JTextField("20",3);
+	
+	private JLabel accelLabel = new JLabel("Accel");
+	private JLabel decelLabel = new JLabel("Decel");
+	private JLabel speedLabel = new JLabel("Speed");
+	private JLabel deltaLabel = new JLabel("Delta");
 	
 }

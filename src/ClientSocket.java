@@ -1,9 +1,12 @@
 import java.awt.List;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayDeque;
@@ -38,6 +41,8 @@ public class ClientSocket {
 	final static int C_SENSOR_VALS = 18; // значени€ с сенсора
 	final static int C_START_GRAVITY_PROGRAM = 19; // программа гравитации
 	final static int C_GRAVITY_PROGRAM_OFF = 20; // программа гравитации
+	final static int C_U_REGULATOR = 21; // выход компонент регул€тора
+	final static int C_ERR_REGULATOR = 22; // ошибки: интегральна€ и пропорциональна€
 	
 	final static int ERR_INRANGE_J1 = 1; //до джоинта 1 не достать
 	final static int ERR_INRANGE_J2 = 2; //до джоинта 2 не достать
@@ -46,6 +51,7 @@ public class ClientSocket {
 	final static int ERR_INRANGE_J5 = 16; //до джоинта 5 не достать
 	final static int ERR_INRANGE_J6 = 32; //до джоинта 6 не достать
 	final static int ERR_NOT_INRANGE = 32786; //вне дос€гаемости
+	final static int C_SET_GRAVITY_PARAMS = 23; // параметры гравитации
 	
 	final static int X_COORD = 0;
 	final static int Y_COORD = 1;
@@ -89,6 +95,43 @@ public class ClientSocket {
     int [] lst = new int[9];
     int rotations[] = new int [6];
     int positions[] = new int [6];
+    
+    int errors[] = new int[6];
+    int uregs[] = new int[6];
+    
+    PrintWriter writer;
+    boolean flgOpenLog = false;
+    public void openLog(String path){
+    	try{
+    		writer = new PrintWriter(new File(path));
+    		flgOpenLog = true;
+    		writer.println("x y z o a t kEx kEy kEz iEx iEy iEz kUx kUy kUz iUx iUy iUz");
+    	}catch (IOException e ){
+    		e.printStackTrace();
+    	}
+    }
+    public void closeLog(){
+    	writer.close();
+    	flgOpenLog = false;
+    }
+    public void setGravityParams(int accel,int deccel,int speed,int maxDeltaPos){
+    	int [] arr  = {0,C_SET_GRAVITY_PARAMS,0,accel,deccel,speed,maxDeltaPos,0,0};   
+    	sendVals2(arr);  
+    }
+    private void writeStatsToLog(){
+    		for (int i=0;i<6;i++){
+    			writer.print(positions[i]+" ");
+    		}
+    		writer.print(' ');
+    		for (int i=0;i<6;i++){
+    			writer.print(errors[i]+" ");
+    		}
+    		writer.print(' ');
+    		for (int i=0;i<6;i++){
+    			writer.write(uregs[i]+" ");
+    		}
+    		writer.println();
+    }
     
     public int [] getRotations(){
     	return Arrays.copyOf(rotations,6);
@@ -177,6 +220,17 @@ public class ClientSocket {
       							   				break;
       							   			}
       							   		break;
+      							   		case C_U_REGULATOR:
+      							   			for (int i=0;i<6;i++){
+      							   				uregs[i]=lst[i+3];
+      							   			}
+      							   			break;
+      							   		case C_ERR_REGULATOR:
+      							   			for (int i=0;i<6;i++){
+      							   				errors[i]=lst[i+3];
+      							   			}
+      							   			if (flgOpenLog)writeStatsToLog();
+      							   			break;
       							   }
       							   pos = 0;
       						   }
@@ -230,8 +284,8 @@ public class ClientSocket {
     	int [] arr  = {0,C_START_GRAVITY_PROGRAM,0,minVals[0],minVals[1],minVals[2],minVals[3],minVals[4],minVals[5]};
 		sendVals2(arr);
     }
-    void startGravityProgram(int kx, int ky, int kz){
-    	int [] arr  = {0,C_START_GRAVITY_PROGRAM,0,kx,ky,kz,0,0,0};
+    void startGravityProgram(int kx, int ky, int kz,int ix,int iy,int iz){
+    	int [] arr  = {0,C_START_GRAVITY_PROGRAM,0,kx,ky,kz,ix,iy,iz};
 		sendVals2(arr);
     }
     
