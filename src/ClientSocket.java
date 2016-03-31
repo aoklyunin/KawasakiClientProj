@@ -51,7 +51,7 @@ public class ClientSocket {
 	final static int ERR_INRANGE_J5 = 16; //до джоинта 5 не достать
 	final static int ERR_INRANGE_J6 = 32; //до джоинта 6 не достать
 	final static int ERR_NOT_INRANGE = 32786; //вне дос€гаемости
-	final static int C_SET_GRAVITY_PARAMS = 23; // параметры гравитации
+	final static int C_SET_PARAMS = 23; // параметры гравитации
 	
 	final static int X_COORD = 0;
 	final static int Y_COORD = 1;
@@ -114,8 +114,8 @@ public class ClientSocket {
     	writer.close();
     	flgOpenLog = false;
     }
-    public void setGravityParams(int accel,int deccel,int speed,int maxDeltaPos){
-    	int [] arr  = {0,C_SET_GRAVITY_PARAMS,0,accel,deccel,speed,maxDeltaPos,0,0};   
+    public void setParams(int accel,int deccel,int speed,int mmps,int delta,int maxDeltaPos){
+    	int [] arr  = {0,C_SET_PARAMS,0,accel,deccel,speed,mmps,delta,maxDeltaPos};   
     	sendVals2(arr);  
     }
     private void writeStatsToLog(){
@@ -187,6 +187,9 @@ public class ClientSocket {
     public int[] getSensorVals(){
     	return sensor.getVals();
     }
+    public int[] getSensorRVals(){
+    	return sensor.getRVals();
+    }
     public void getChars(){
     	if (flgOpenSocket){ 	        		
       	   if (!socket.isConnected()){
@@ -212,6 +215,10 @@ public class ClientSocket {
       							   		case  C_GetPosition:
       							   			for (int i=0;i<6;i++)
       							   				positions[i]=lst[i+3];
+      							   			int [] arr = {positions[3],
+      							   						  positions[4],
+      							   						  positions[5]};
+      							   			sensor.setAngles(arr);
   							   			break;
       							   		case C_ERR:
       							   			switch (lst[2]){
@@ -268,7 +275,14 @@ public class ClientSocket {
   	        }
   	    }, 0, 200);
 	}
-    
+	public double[][] getRMatrix(){
+		return sensor.getRMatrix();
+	}
+	
+	
+    void close(){
+    	sensor.stop();
+    }
     void moveD(int[] arr){   
     	System.out.println("arr:"+ arr[0]+" "+arr[1]+" "+arr[2]);
     	int [] positionsN = Arrays.copyOf(positions, 6);
@@ -382,6 +396,7 @@ public class ClientSocket {
 			e.printStackTrace();
 		}		
 		Custom.showMessage("Socket closed");
+		
 	}
 	public void addJPoint(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
 		if (speed<=0) speed = 1;

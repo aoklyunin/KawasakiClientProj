@@ -20,11 +20,14 @@ import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 import javax.security.auth.Subject;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.AbstractDocument.LeafElement;
+
+
 
 public class ClientGui extends JFrame {
 
@@ -293,6 +296,7 @@ public class ClientGui extends JFrame {
 			}	    	
 	    });	
     	
+    	
     	sledersPosLables[0] = new JLabel("x");
     	sledersPosLables[1] = new JLabel("y");
     	sledersPosLables[2] = new JLabel("z");
@@ -435,18 +439,18 @@ public class ClientGui extends JFrame {
     		sensorLables[i] = new JLabel();
     		sensorLables[i] = new JLabel("j"+i);
         	size = sensorLables[i].getPreferredSize(); 
-        	sensorLables[i].setBounds(120 + insets.left, 15+i*50 + insets.top, 
+        	sensorLables[i].setBounds(120 + insets.left, 15+i*30 + insets.top, 
                 	 230, size.height);        	
         	sensorPage.add(sensorLables[i]);
         	sensorProgress[i]=new JProgressBar();
         	size = sensorProgress[i].getPreferredSize(); 
-        	sensorProgress[i].setBounds(170 + insets.left, 15+i*50 + insets.top, 
+        	sensorProgress[i].setBounds(170 + insets.left, 15+i*30 + insets.top, 
                 	                   230, size.height);  
         	sensorPage.add(sensorProgress[i]);
         	sensorProgress[i].setMaximum(500000);
         	sensorValLables[i] = new JTextField("0");
         	size = sensorValLables[i].getPreferredSize(); 
-        	sensorValLables[i].setBounds(400 + insets.left, 15+i*50 + insets.top, 
+        	sensorValLables[i].setBounds(400 + insets.left, 15+i*30 + insets.top, 
                 	                   80, size.height);  
         	sensorPage.add(sensorValLables[i]);
     	}
@@ -456,6 +460,58 @@ public class ClientGui extends JFrame {
     	sensorLables[3].setText("Tx");
     	sensorLables[4].setText("Ty");
     	sensorLables[5].setText("Tz");    
+    	
+    	for (int i=0;i<6;i++){
+    		sensorLables[i] = new JLabel();
+    		sensorLables[i] = new JLabel("j"+i);
+        	size = sensorLables[i].getPreferredSize(); 
+        	sensorLables[i].setBounds(120 + insets.left, 15+i*30 + insets.top, 
+                	 230, size.height);        	
+        	sensorPage.add(sensorLables[i]);
+        	sensorProgress[i]=new JProgressBar();
+        	size = sensorProgress[i].getPreferredSize(); 
+        	sensorProgress[i].setBounds(170 + insets.left, 15+i*30 + insets.top, 
+                	                   230, size.height);  
+        	sensorPage.add(sensorProgress[i]);
+        	sensorProgress[i].setMaximum(500000);
+        	sensorValLables[i] = new JTextField("0");
+        	size = sensorValLables[i].getPreferredSize(); 
+        	sensorValLables[i].setBounds(400 + insets.left, 15+i*30 + insets.top, 
+                	                   80, size.height);  
+        	sensorPage.add(sensorValLables[i]);
+    	}
+    	sensorLables[0].setText("Fx");
+    	sensorLables[1].setText("Fy");
+    	sensorLables[2].setText("Fz");
+    	sensorLables[3].setText("Tx");
+    	sensorLables[4].setText("Ty");
+    	sensorLables[5].setText("Tz");    
+    	
+    	for (int i=6;i<12;i++){
+    		sensorLables[i] = new JLabel();
+    		sensorLables[i] = new JLabel("j"+i);
+        	size = sensorLables[i].getPreferredSize(); 
+        	sensorLables[i].setBounds(120 + insets.left, 50+i*30 + insets.top, 
+                	 230, size.height);        	
+        	sensorPage.add(sensorLables[i]);
+        	sensorProgress[i]=new JProgressBar();
+        	size = sensorProgress[i].getPreferredSize(); 
+        	sensorProgress[i].setBounds(170 + insets.left, 50+i*30 + insets.top, 
+                	                   230, size.height);  
+        	sensorPage.add(sensorProgress[i]);
+        	sensorProgress[i].setMaximum(500000);
+        	sensorValLables[i] = new JTextField("0");
+        	size = sensorValLables[i].getPreferredSize(); 
+        	sensorValLables[i].setBounds(400 + insets.left, 50+i*30 + insets.top, 
+                	                   80, size.height);  
+        	sensorPage.add(sensorValLables[i]);
+    	}
+    	sensorLables[6].setText("FxR");
+    	sensorLables[7].setText("FyR");
+    	sensorLables[8].setText("FzR");
+    	sensorLables[9].setText("TxR");
+    	sensorLables[10].setText("TyR");
+    	sensorLables[11].setText("TzR");    
     }
     
     public void createProgramPage(){    
@@ -470,10 +526,12 @@ public class ClientGui extends JFrame {
     	btnStartGravity.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.setGravityParams(Integer.parseInt(accelEdit.getText()),
-										Integer.parseInt(decelEdit.getText()),
-										Integer.parseInt(speedEdit.getText()),
-										Integer.parseInt(deltaEdit.getText()));
+				client.setParams(Integer.parseInt(accelEdit.getText()),
+						 Integer.parseInt(decelEdit.getText()),
+						 Integer.parseInt(speedEdit.getText()),
+						 Integer.parseInt(mmpsEdit.getText()),
+						 Integer.parseInt(deltaEdit.getText()),
+						 Integer.parseInt(maxDeltaEdit.getText()));
 				client.startGravityProgram(Integer.parseInt(kPxEdit.getText()),
 										   Integer.parseInt(kPyEdit.getText()),
 										   Integer.parseInt(kPzEdit.getText()),
@@ -563,10 +621,16 @@ public class ClientGui extends JFrame {
     	size = speedLabel.getPreferredSize(); 
     	speedLabel.setBounds(60 + insets.left, 230+ insets.top, 
     			size.width, size.height);  
-    	size = deltaLabel.getPreferredSize(); 
-    	deltaLabel.setBounds(60 + insets.left, 255+ insets.top, 
-    			size.width, size.height);  
     	
+    	size = mmpsLabel.getPreferredSize(); 
+    	mmpsLabel.setBounds(60 + insets.left, 255+ insets.top, 
+    			size.width, size.height);  
+    	size = deltaLabel.getPreferredSize(); 
+    	deltaLabel.setBounds(60 + insets.left, 280+ insets.top, 
+    			size.width, size.height);  
+    	size = maxDeltaLabel.getPreferredSize(); 
+    	maxDeltaLabel.setBounds(60 + insets.left, 305+ insets.top, 
+    			size.width, size.height);  
     	
     	size = accelEdit.getPreferredSize(); 
     	accelEdit.setBounds(160 + insets.left, 180+ insets.top, 
@@ -577,15 +641,60 @@ public class ClientGui extends JFrame {
     	size = speedEdit.getPreferredSize(); 
     	speedEdit.setBounds(160 + insets.left, 230+ insets.top, 
     			size.width, size.height);  
+    	size = mmpsEdit.getPreferredSize(); 
+    	mmpsEdit.setBounds(160 + insets.left, 255+ insets.top, 
+    			size.width, size.height);  
     	size = deltaEdit.getPreferredSize(); 
-    	deltaEdit.setBounds(160 + insets.left, 255+ insets.top, 
+    	deltaEdit.setBounds(160 + insets.left, 280+ insets.top, 
+    			size.width, size.height);  
+    	size = maxDeltaEdit.getPreferredSize(); 
+    	maxDeltaEdit.setBounds(160 + insets.left, 305+ insets.top, 
     			size.width, size.height);  
     	
+    	size = btnSetParams.getPreferredSize(); 
+    	btnSetParams.setBounds(300 + insets.left, 180 + insets.top, 
+      	 	   100, size.height); 
     	
+    	btnSetParams.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				client.setParams(Integer.parseInt(accelEdit.getText()),
+								 Integer.parseInt(decelEdit.getText()),
+								 Integer.parseInt(speedEdit.getText()),
+								 Integer.parseInt(mmpsEdit.getText()),
+								 Integer.parseInt(deltaEdit.getText()),
+								 Integer.parseInt(maxDeltaEdit.getText()));
+			}	    	
+	    });	
+    	size = btnHomeP.getPreferredSize(); 
+    	btnHomeP.setBounds(300 + insets.left, 210 + insets.top, 
+       	 	   	100, size.height); 
+    	btnHomeP.addActionListener(new ActionListener(){
+ 			@Override
+ 			public void actionPerformed(ActionEvent arg0) {
+ 				client.home1(10);
+ 			}	    	
+ 	    });	
+     	size = btnHomeP2.getPreferredSize(); 
+     	btnHomeP2.setBounds(300 + insets.left, 240 + insets.top, 
+       	 	   				100, size.height); 
+     	btnHomeP2.addActionListener(new ActionListener(){
+ 			@Override
+ 			public void actionPerformed(ActionEvent arg0) {
+ 				client.home2(10);
+ 			}	    	
+ 	    });	
+     	programPage.add(maxDeltaEdit);
+     	programPage.add(maxDeltaLabel);
+    	programPage.add(btnHomeP);
+    	programPage.add(btnHomeP2);
+    	programPage.add(btnSetParams);
     	programPage.add(accelEdit);
     	programPage.add(decelEdit);
     	programPage.add(speedEdit);
     	programPage.add(deltaEdit);
+    	programPage.add(mmpsEdit);
+    	programPage.add(mmpsLabel);
     	programPage.add(accelLabel);
     	programPage.add(decelLabel);
     	programPage.add(speedLabel);
@@ -616,7 +725,7 @@ public class ClientGui extends JFrame {
     	programPage.add(kIMxEdit);
     	programPage.add(kIMyEdit);
     	programPage.add(kIMzEdit);
-    	
+    	programPage.add(setFocusB);
     }    
     
 	public ClientGui() {
@@ -694,13 +803,13 @@ public class ClientGui extends JFrame {
             }
         });
 		client = new ClientSocket();
-		client.openSocket(adressSocket.getText(),portSocet.getText());
+		//client.openSocket(adressSocket.getText(),portSocet.getText());
 		timeSendC.schedule(new TimerTask() {
  	        @Override
  	        public void run() { //ÏÅÐÅÇÀÃÐÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎÐÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
  	        	dCoordArr = new int[6];
  	        	boolean flgCom = false;
- 	        	int delta = Integer.parseInt(deltaPos.getText());
+ 	        	int delta = Integer.parseInt(deltaEdit.getText());
  	        	if (isKeyDown[(int)'ö']||isKeyDown[(int)'w']){
  	        		dCoordArr[0]+=delta;
  	        		flgCom=true;
@@ -755,6 +864,8 @@ public class ClientGui extends JFrame {
 	 	        	int [] paramsJ = client.getRotations();
 	 	        	int [] paramsD = client.getPositions();
 	 	        	int [] sensorVals = client.getSensorVals();
+	 	        	int [] sensorRVals = client.getSensorRVals();
+	 	        	
 	 	        	for (int i=0;i<6;i++){
 	 	        		jPosLables[i].setText(paramsJ[i]+"");
 	 	        		slierDekartPoss[i].setText(paramsD[i]+"");
@@ -765,6 +876,15 @@ public class ClientGui extends JFrame {
 	 	        		sensorProgress[i].setValue(Math.abs(sensorVals[i]));
 	 	        		sensorValLables[i].setText(sensorVals[i]+"");
 	 	        	}
+	 	        	for (int i=6;i<12;i++){	 	      
+	 	        		if ( sensorRVals[i-6] < 0)
+	 	        			sensorProgress[i].setForeground( Color.blue );
+	                    else
+	                    	sensorProgress[i].setForeground( Color.green );
+	 	        		sensorProgress[i].setValue(Math.abs(sensorRVals[i-6]));
+	 	        		sensorValLables[i].setText(sensorRVals[i-6]+"");
+	 	        	}
+	 	        	
 	 	        }
 	 	    }, 0, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
 	}    
@@ -847,9 +967,9 @@ public class ClientGui extends JFrame {
 	// ýëåìåíòû âêëàäêè äàò÷èêà
 	private JButton btnStartSensor = new JButton("Start");
 	private JButton btnStopSensor = new JButton("Stop");
-	private JProgressBar [] sensorProgress = new JProgressBar[6];
-	private JLabel[] sensorLables = new JLabel[6];
-	private JTextField[] sensorValLables = new JTextField[6];
+	private JProgressBar [] sensorProgress = new JProgressBar[12];
+	private JLabel[] sensorLables = new JLabel[12];
+	private JTextField[] sensorValLables = new JTextField[12];
 	// ýëåìåíòû îáðàòíîé ñâÿçè
 	public JLabel [] jPosLables = new JLabel[6]; 
 	
@@ -890,14 +1010,21 @@ public class ClientGui extends JFrame {
 	private JTextField kIMyEdit = new JTextField("1",2);
 	private JTextField kIMzEdit = new JTextField("1",2);
 	
-	private JTextField accelEdit = new JTextField("40",3);
-	private JTextField decelEdit = new JTextField("40",3);
+	private JTextField accelEdit = new JTextField("100",3);
+	private JTextField decelEdit = new JTextField("100",3);
 	private JTextField speedEdit = new JTextField("10",3);
-	private JTextField deltaEdit = new JTextField("20",3);
+	private JTextField deltaEdit = new JTextField("1",3);
+	private JTextField mmpsEdit = new JTextField("100",3);
+	private JTextField maxDeltaEdit = new JTextField("20",3);
 	
 	private JLabel accelLabel = new JLabel("Accel");
 	private JLabel decelLabel = new JLabel("Decel");
-	private JLabel speedLabel = new JLabel("Speed");
-	private JLabel deltaLabel = new JLabel("Delta");
+	private JLabel speedLabel = new JLabel("SpeedProc");
+	private JLabel mmpsLabel = new JLabel("SpeedMMPS");
+	private JLabel deltaLabel = new JLabel("delta");
+	private JLabel maxDeltaLabel = new JLabel("maxDelta");
 	
+	private JButton btnSetParams = new JButton("SetParams");
+	private JButton btnHomeP = new JButton("Home");
+	private JButton btnHomeP2 = new JButton("Home2");
 }
