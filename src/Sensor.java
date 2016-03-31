@@ -110,6 +110,9 @@ public class Sensor {
 	            
 	        }
 	    }
+	    public SimpleMatrix calcRMatrix(int o,int a,int t){
+	    	return new SimpleMatrix();
+	    }
 	    public void dispData(NetFTRDTPacket displayRDT){
 	    	vals[0] = displayRDT.getFx()/1000;
 	    	vals[1] = displayRDT.getFy()/1000;
@@ -121,9 +124,9 @@ public class Sensor {
 	    	int y = vals[1];
 	    	int z = vals[2];
 	    	
-	    	double o = angles[0]/360*Math.PI;
-	    	double a = angles[1]/360*Math.PI;
-	    	double t = angles[2]/360*Math.PI;
+	    	double o =Math.toRadians(angles[0]);
+	    	double a = Math.toRadians(angles[1]);
+	    	double t =Math.toRadians(angles[2]);
 	    	
 	    	double arrayX [][]={{1,0,0},
 	    					    {0,Math.cos(o),-Math.sin(o)},
@@ -133,22 +136,21 @@ public class Sensor {
 	    						{0,	1, 0},
 	    						{-Math.sin(a),0,Math.cos(a)}};
 	    	SimpleMatrix Ry = new SimpleMatrix(arrayY);
-	    	double arrayZ [][]={{Math.cos(t),-Math.sin(a),0},
-								{Math.sin(a),Math.cos(a), 0},
+	    	double arrayZ [][]={{Math.cos(t),-Math.sin(t),0},
+								{Math.sin(t), Math.cos(t), 0},
 								{0,0,1}};
 	    	SimpleMatrix Rz = new SimpleMatrix(arrayZ);
-	    	
 	    	SimpleMatrix R  = Rz.mult(Ry).mult(Rx);
 	    	SimpleMatrix Ro = R.invert();
 	    	double arrayV[][] = {{x,y,z}}; 
 	    	SimpleMatrix V = new SimpleMatrix(arrayV);
 	    	SimpleMatrix Vn = V.mult(Ro);
-	    	rVals[0] = (int)Vn.get(0, 0);
-	    	rVals[1]  = (int)Vn.get(0, 1);
-	    	rVals[2]  = (int)Vn.get(0, 2);
+	    	rVals[0] =  (int)Vn.get(0,0);
+	    	rVals[1]  = (int)Vn.get(0,1);
+	    	rVals[2]  = (int)Vn.get(0,2);
 	    	for(int i=0;i<3;i++)
 	    	for(int j=0;j<3;j++)
-	    		rMatrix[i][j] = Ro.get(i, j);
+	    		rMatrix[i][j] = Ro.get(i,j);
 	    	
 	    }
 	}

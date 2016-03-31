@@ -2,15 +2,21 @@ import java.awt.Color;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Slider;
 
 public class MainWindow {
 	
@@ -57,6 +63,25 @@ public class MainWindow {
 	private Text textR31;
 	private Text textR32;
 	private Text textR33;
+	private Text textDx;
+	private Text textDy;
+	private Text textDz;
+	private Text textDo;
+	private Text textDa;
+	private Text textDt;
+	private Text textSpeed;
+	private Label lblX_1;
+	private Label lblY_1;
+	private Label lblZ_1;
+	private Label lblO_1;
+	private Label lblA_1;
+	private Label lblT_1;
+	Slider sliderX;	
+	Slider sliderY;	
+	Slider sliderZ;	
+	Slider sliderO;	
+	Slider sliderA;	
+	Slider sliderT;
 	
 
 	public void onTime(){
@@ -78,6 +103,29 @@ public class MainWindow {
 		 display.timerExec(time, timer);
 		 client = new ClientSocket();
 		 client.openSocket("192.168.1.0","40000");
+		 int pos [] = client.getPositions();
+		 sliderX.setSelection(pos[0]);
+		 sliderY.setSelection(pos[1]);
+		 sliderZ.setSelection(pos[2]);		 
+		 sliderO.setSelection(pos[3]);
+		 sliderA.setSelection(pos[4]);
+		 sliderT.setSelection(pos[5]);
+		 
+		 textDx.setText(pos[0]+"");
+		 textDy.setText(pos[1]+"");
+		 textDz.setText(pos[2]+"");
+		 textDo.setText(pos[3]+"");
+		 textDa.setText(pos[4]+"");
+		 textDt.setText(pos[5]+"");
+		 
+		 sliderX.addListener(SWT.Selection, new Listener() {	
+			@Override
+			public void handleEvent(Event arg0) {
+				// TODO Auto-generated method stub
+				System.out.println(sliderX.getSelection());
+			}
+		 });
+		 
 	}
 	
 	/**
@@ -122,7 +170,7 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(672, 301);
+		shell.setSize(672, 416);
 		shell.setText("SWT Application");
 		
 		progressBarX = new ProgressBar(shell, SWT.NONE);
@@ -313,6 +361,103 @@ public class MainWindow {
 		
 		textR33 = new Text(shell, SWT.BORDER);
 		textR33.setBounds(248, 208, 53, 17);
+		
+		sliderX = new Slider(shell, SWT.NONE);
+		sliderX.setBounds(370, 185, 170, 17);
+		
+		sliderY = new Slider(shell, SWT.NONE);
+		sliderY.setBounds(370, 208, 170, 17);
+		
+		sliderZ = new Slider(shell, SWT.NONE);
+		sliderZ.setBounds(370, 231, 170, 17);
+		
+		sliderO = new Slider(shell, SWT.NONE);
+		sliderO.setBounds(370, 254, 170, 17);
+		
+		sliderA = new Slider(shell, SWT.NONE);
+		sliderA.setBounds(370, 277, 170, 17);
+		
+		sliderT = new Slider(shell, SWT.NONE);
+		sliderT.setBounds(370, 300, 170, 17);
+		
+		textDx = new Text(shell, SWT.BORDER);
+		textDx.setBounds(558, 185, 47, 17);
+		
+		textDy = new Text(shell, SWT.BORDER);
+		textDy.setBounds(558, 208, 47, 17);
+		
+		textDz = new Text(shell, SWT.BORDER);
+		textDz.setBounds(558, 231, 47, 17);
+		
+		textDo = new Text(shell, SWT.BORDER);
+		textDo.setBounds(558, 254, 47, 17);
+		
+		textDa = new Text(shell, SWT.BORDER);
+		textDa.setBounds(558, 277, 47, 17);
+		
+		textDt = new Text(shell, SWT.BORDER);
+		textDt.setBounds(558, 300, 47, 17);
+		
+		Button btnHome = new Button(shell, SWT.NONE);
+		btnHome.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				client.home1();
+			}
+		});
+		btnHome.setBounds(11, 231, 75, 25);
+		btnHome.setText("Home");
+		
+		Button btnHome_1 = new Button(shell, SWT.NONE);
+		btnHome_1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				client.home2();
+			}
+		});
+		btnHome_1.setBounds(11, 269, 75, 25);
+		btnHome_1.setText("Home2");
+		
+		textSpeed = new Text(shell, SWT.BORDER);
+		textSpeed.setBounds(153, 254, 53, 17);
+		
+		Button btnSetparams = new Button(shell, SWT.NONE);
+		btnSetparams.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				client.setParams(0, 0, Integer.parseInt(textSpeed.getText()), 0, 0, 0);
+			}
+		});
+		btnSetparams.setBounds(123, 275, 75, 25);
+		btnSetparams.setText("SetParams");
+		
+		Label lblSpeed = new Label(shell, SWT.NONE);
+		lblSpeed.setBounds(113, 254, 34, 15);
+		lblSpeed.setText("Speed");
+		
+		lblX_1 = new Label(shell, SWT.NONE);
+		lblX_1.setText("X");
+		lblX_1.setBounds(344, 187, 20, 15);
+		
+		lblY_1 = new Label(shell, SWT.NONE);
+		lblY_1.setText("Y");
+		lblY_1.setBounds(344, 208, 20, 15);
+		
+		lblZ_1 = new Label(shell, SWT.NONE);
+		lblZ_1.setText("Z");
+		lblZ_1.setBounds(344, 231, 20, 15);
+		
+		lblO_1 = new Label(shell, SWT.NONE);
+		lblO_1.setText("O");
+		lblO_1.setBounds(344, 254, 20, 15);
+		
+		lblA_1 = new Label(shell, SWT.NONE);
+		lblA_1.setText("A");
+		lblA_1.setBounds(344, 277, 20, 15);
+		
+		lblT_1 = new Label(shell, SWT.NONE);
+		lblT_1.setText("T");
+		lblT_1.setBounds(344, 300, 20, 15);
 
 	}
 	

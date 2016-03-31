@@ -280,7 +280,7 @@ public class ClientGui extends JFrame {
     	btnHome1.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.home1(Integer.parseInt(dSpeedInput.getText()));
+				client.home1();
 			}	    	
 	    });	
     	
@@ -292,7 +292,7 @@ public class ClientGui extends JFrame {
     	btnHome2.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				client.home2(Integer.parseInt(dSpeedInput.getText()));
+				client.home2();
 			}	    	
 	    });	
     	
@@ -672,7 +672,7 @@ public class ClientGui extends JFrame {
     	btnHomeP.addActionListener(new ActionListener(){
  			@Override
  			public void actionPerformed(ActionEvent arg0) {
- 				client.home1(10);
+ 				client.home1();
  			}	    	
  	    });	
      	size = btnHomeP2.getPreferredSize(); 
@@ -681,7 +681,7 @@ public class ClientGui extends JFrame {
      	btnHomeP2.addActionListener(new ActionListener(){
  			@Override
  			public void actionPerformed(ActionEvent arg0) {
- 				client.home2(10);
+ 				client.home2();
  			}	    	
  	    });	
      	programPage.add(maxDeltaEdit);
@@ -803,7 +803,7 @@ public class ClientGui extends JFrame {
             }
         });
 		client = new ClientSocket();
-		//client.openSocket(adressSocket.getText(),portSocet.getText());
+		client.openSocket(adressSocket.getText(),portSocet.getText());
 		timeSendC.schedule(new TimerTask() {
  	        @Override
  	        public void run() { //оепегюцпсфюел лернд RUN б йнрнпнл декюере рн врн бюл мюдн

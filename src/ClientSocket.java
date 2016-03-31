@@ -166,8 +166,8 @@ public class ClientSocket {
     	int [] arr  = {0,C_SET_DELTA_POS,speed,coords[0],coords[1],coords[2],coords[3],coords[4],coords[5]};   
     	sendVals2(arr);    	
     }
-    public void home1(int speed){
-    	int [] arr  = {0,C_HOME1,speed,0,0,0,0,0,0};
+    public void home1(){
+    	int [] arr  = {0,C_HOME1,0,0,0,0,0,0,0};
 		sendVals2(arr);
     }
     
@@ -180,8 +180,8 @@ public class ClientSocket {
     	sendVals2(arr);  
     }
     
-    public void home2(int speed){
-    	int [] arr  = {0,C_HOME2,speed,0,0,0,0,0,0};
+    public void home2(){
+    	int [] arr  = {0,C_HOME2,0,0,0,0,0,0,0};
 		sendVals2(arr);
     }
     public int[] getSensorVals(){
@@ -381,7 +381,7 @@ public class ClientSocket {
 	}
 	void closeSocket(){
 		int [] arr  = {0,C_STOP,0,0,0,0,0,0,0};
-		getChars();
+		//getChars();
 		flush();
 		sendVals2(arr);
 		flgOpenSocket = false;
