@@ -264,7 +264,7 @@ public class ClientGui extends JFrame {
 								   slidersPos[2].getValue(),
 								   slidersPos[3].getValue(),
 								   slidersPos[4].getValue(),
-								   slidersPos[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(dSpeedInput.getText()));
+								   slidersPos[5].getValue(),Integer.parseInt(dSpeedInput.getText()));
 			}	    	
 	    });	
     	size = dSpeedInput.getPreferredSize(); 
@@ -360,7 +360,7 @@ public class ClientGui extends JFrame {
 									slidersAngle[2].getValue(),
 									slidersAngle[3].getValue(),
 									slidersAngle[4].getValue(),
-									slidersAngle[5].getValue(),JPoints.ABSOLUTE,Integer.parseInt(aSpeedInput.getText()));
+									slidersAngle[5].getValue(),Integer.parseInt(aSpeedInput.getText()));
 			}	    	
 	    });	
     	size = aSpeedInput.getPreferredSize(); 

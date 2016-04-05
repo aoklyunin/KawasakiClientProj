@@ -17,10 +17,14 @@ public class Sensor {
     private DatagramSocket m_cNetFTSlowSocket;
     
     int vals[] = new int[6];
-    int rVals[]=new int[6];
+    int rVals[] = new int[6];
     int angles[] = new int[3];
     int timeToSleep;
     double rMatrix[][] = new double[3][3];
+    
+    public static final double o0 = -109;
+    public static final double a0 = 180;
+    public static final double t0 = 160;
     
     public int [] getVals(){
     	return vals;
@@ -113,6 +117,8 @@ public class Sensor {
 	    public SimpleMatrix calcRMatrix(int o,int a,int t){
 	    	return new SimpleMatrix();
 	    }
+	    
+	    
 	    public void dispData(NetFTRDTPacket displayRDT){
 	    	vals[0] = displayRDT.getFx()/1000;
 	    	vals[1] = displayRDT.getFy()/1000;
@@ -124,14 +130,15 @@ public class Sensor {
 	    	int y = vals[1];
 	    	int z = vals[2];
 	    	
-	    	double o =Math.toRadians(angles[0]);
-	    	double a = Math.toRadians(angles[1]);
-	    	double t =Math.toRadians(angles[2]);
+	    	double o = Math.toRadians(angles[0])-Math.toRadians(o0);
+	    	double a = Math.toRadians(angles[1])-Math.toRadians(a0);
+	    	double t = Math.toRadians(angles[2])-Math.toRadians(t0);
 	    	
-	    	double arrayX [][]={{1,0,0},
-	    					    {0,Math.cos(o),-Math.sin(o)},
-	    					    {0,Math.sin(o),Math.cos(o)}};
-	    	SimpleMatrix Rx = new SimpleMatrix(arrayX);
+	    	double arrayZ0 [][]={{Math.cos(o),-Math.sin(o),0},
+								 {Math.sin(o), Math.cos(o), 0},
+								 {0,0,1}};
+	    	SimpleMatrix Rz0 = new SimpleMatrix(arrayZ0);
+	    	
 	    	double arrayY [][]={{Math.cos(a),0,Math.sin(a)},
 	    						{0,	1, 0},
 	    						{-Math.sin(a),0,Math.cos(a)}};
@@ -140,8 +147,9 @@ public class Sensor {
 								{Math.sin(t), Math.cos(t), 0},
 								{0,0,1}};
 	    	SimpleMatrix Rz = new SimpleMatrix(arrayZ);
-	    	SimpleMatrix R  = Rz.mult(Ry).mult(Rx);
+	    	SimpleMatrix R  = Rz.mult(Ry).mult(Rz0);
 	    	SimpleMatrix Ro = R.invert();
+	    	
 	    	double arrayV[][] = {{x,y,z}}; 
 	    	SimpleMatrix V = new SimpleMatrix(arrayV);
 	    	SimpleMatrix Vn = V.mult(Ro);

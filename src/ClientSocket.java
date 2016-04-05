@@ -23,6 +23,8 @@ import javax.naming.ldap.HasControls;
 import javax.sound.midi.ShortMessage;
 import javax.swing.JOptionPane;
 
+import org.ejml.simple.SimpleMatrix;
+
 public class ClientSocket {
 	final static int C_STOP = 4;// остановка
 	final static int C_J = 5; //управление конкретным джоиндом
@@ -59,6 +61,12 @@ public class ClientSocket {
 	final static int O_COORD = 3;
 	final static int A_COORD = 4;
 	final static int T_COORD = 5;
+	
+	double d1 = 430;
+	double d2 = 450;
+	double d3 = 450;
+	double d4 = 100;
+	double d5 = 10;
 	
 	final static int[] ULIMIMT = { 160,  140,  120,  270,  145,  360};
 	final static int[] LLIMIMT = {-160, -105, -155, -270, -145, -360};
@@ -140,7 +148,121 @@ public class ClientSocket {
     	return Arrays.copyOf(positions,6);
     }
     
-    public void runInPointD(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
+    public double[][] getMatrix4x4(){
+    	// первое колено
+    	double c1 = Math.cos(Math.toRadians(rotations[0]));
+    	double s1 = Math.sin(Math.toRadians(rotations[0]));
+    	double a1 [][]={{c1 ,-s1, 0 , 0 },
+    					{s1 , c1, 0 , 0 },
+    					{0  ,  0, 1 , 0},
+    					{0  ,  0, 0 , 1 }};
+    	SimpleMatrix A1 = new SimpleMatrix(a1);
+    	// второе колено
+    	double c2 = Math.cos(Math.toRadians(rotations[1]));
+    	double s2 = Math.sin(Math.toRadians(rotations[1]));
+    	double a2 [][]={{c2 , 0  , -s2 , 0 },
+    					{s2 , 0  ,  c2 , 0 },
+    					{0  , -1 ,   0 , d1},
+    					{0  ,  0 ,   0 , 1 }};
+    	SimpleMatrix A2 = new SimpleMatrix(a2);
+    	// третье колено
+    	double c3 = Math.cos(Math.toRadians(rotations[2]));
+    	double s3 = Math.sin(Math.toRadians(rotations[2]));
+    	double a3 [][]={{c3 ,-s3 , 0 , 0 },
+    					{s3 , c3 , 0 , 0 },
+    					{ 0 ,  0 , 1 , d2},
+    					{ 0 ,  0 , 0 , 1 }};
+    	SimpleMatrix A3 = new SimpleMatrix(a3);
+    	// четвёртое колено
+    	double c4 = Math.cos(Math.toRadians(rotations[3]));
+    	double s4 = Math.sin(Math.toRadians(rotations[3]));
+    	double a4 [][]={{c4, 0  , s4  , 0},
+    					{s4, 0  , -c4 , 0},
+    					{0 , 1 , 0   , d3},
+    					{0 , 0  , 0   , 1}};
+    	SimpleMatrix A4 = new SimpleMatrix(a4);
+    	// пятое колено
+    	double c5 = Math.cos(Math.toRadians(rotations[4]));
+    	double s5 = Math.sin(Math.toRadians(rotations[4]));
+    	double a5 [][]={{c5 , 0  , -s5 , 0},
+    					{s5 , 0  , c5  , 0},
+    					{0  , -1 , 1   , d4},
+    					{0  , 0  , 0   , 1}};
+    	SimpleMatrix A5 = new SimpleMatrix(a5);
+    	// шестое колено
+    	double c6 = Math.cos(Math.toRadians(rotations[5]));
+    	double s6 = Math.sin(Math.toRadians(rotations[5]));
+    	double a6 [][]={{c6 , 0  , s6  , 0},
+    					{s6 , 0  , -c6 , 0},
+    					{0  , 1 , 0   , d5},
+    					{0  , 0  , 0   , 1}};
+    	SimpleMatrix A6 = new SimpleMatrix(a6);
+    	SimpleMatrix M = A1.mult(A2).mult(A3).mult(A4).mult(A5).mult(A6);	
+    	double rMatrix[][]= new double[4][4];
+    	for(int i=0;i<4;i++)
+	    	for(int j=0;j<4;j++)
+	    		rMatrix[i][j] = M.get(i,j);
+    	return rMatrix;
+    }
+    
+    public double[][] getMatrix4x4_2(){
+    	// первое колено
+    	double c1 = Math.cos(Math.toRadians(rotations[0]));
+    	double s1 = Math.sin(Math.toRadians(rotations[0]));
+    	double a1 [][]={{c1 ,-s1, 0 , 0 },
+    					{s1 , c1, 0 , 0 },
+    					{0  ,  0, 1 , 0},
+    					{0  ,  0, 0 , 1 }};
+    	SimpleMatrix A1 = new SimpleMatrix(a1);
+    	// второе колено
+    	double c2 = Math.cos(Math.toRadians(rotations[1]));
+    	double s2 = Math.sin(Math.toRadians(rotations[1]));
+    	double a2 [][]={{c2 , 0  , -s2 , 0 },
+    					{0  , 1  ,  0  , 0 },
+    					{-s2, 0  , c2  , d1},
+    					{0  , 0  ,   0 , 1 }};
+    	SimpleMatrix A2 = new SimpleMatrix(a2);
+    	// третье колено
+    	double c3 = Math.cos(Math.toRadians(rotations[2]));
+    	double s3 = Math.sin(Math.toRadians(rotations[2]));
+    	double a3 [][]={{c3 ,0 , s3 , 0 },
+    					{0 , 1 , 0 , 0 },
+    					{-s3 ,  0 , c3 , d2},
+    					{ 0 ,  0 , 0 , 1 }};
+    	SimpleMatrix A3 = new SimpleMatrix(a3);
+    	// четвёртое колено
+    	double c4 = Math.cos(Math.toRadians(rotations[3]));
+    	double s4 = Math.sin(Math.toRadians(rotations[3]));
+    	double a4 [][]={{c4, -s4  ,0  , 0},
+    					{s4, c4  ,0 , 0},
+    					{0 , 0 , 1   , d3},
+    					{0 , 0  , 0   , 1}};
+    	SimpleMatrix A4 = new SimpleMatrix(a4);
+    	// пятое колено
+    	double c5 = Math.cos(Math.toRadians(rotations[4]));
+    	double s5 = Math.sin(Math.toRadians(rotations[4]));
+    	double a5 [][]={{c5 , 0  , s5 , 0},
+    					{0 , 1  , 0  , 0},
+    					{-s5  , 0 , c5   , d4},
+    					{0  , 0  , 0   , 1}};
+    	SimpleMatrix A5 = new SimpleMatrix(a5);
+    	// шестое колено
+    	double c6 = Math.cos(Math.toRadians(rotations[5]));
+    	double s6 = Math.sin(Math.toRadians(rotations[5]));
+    	double a6 [][]={{c6 , -s6  , 0  , 0},
+    					{s6 , c6  , 0 , 0},
+    					{0  , 0 , 1   , d5},
+    					{0  , 0  , 0   , 1}};
+    	SimpleMatrix A6 = new SimpleMatrix(a6);
+    	SimpleMatrix M = A1.mult(A2).mult(A3).mult(A4).mult(A5).mult(A6);	
+    	double rMatrix[][]= new double[4][4];
+    	for(int i=0;i<4;i++)
+	    	for(int j=0;j<4;j++)
+	    		rMatrix[i][j] = M.get(i,j);
+    	return rMatrix;
+    }
+    
+    public void runInPointD(int j1,int j2,int j3,int j4,int j5,int j6,int speed){
     	int [] arr  = {0,C_D_POINT,speed,j1,j2,j3,j4,j5,j6};   
     	sendVals2(arr);
     }
@@ -153,7 +275,7 @@ public class ClientSocket {
     	sendVals2(arr);
     }
     
-    public void runInPointA(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
+    public void runInPointA(int j1,int j2,int j3,int j4,int j5,int j6,int speed){
     	int [] arr  = {0,C_J_POINT,speed,j1,j2,j3,j4,j5,j6};   
     	sendVals2(arr);
     }
@@ -290,7 +412,7 @@ public class ClientSocket {
     	for (int i=0;i<3;i++){
     		positionsN[i] = positions[i]+arr[i];
     		runInPointD(positionsN[0], positionsN[1], positionsN[2], 
-    					positionsN[3], positionsN[4], positionsN[5], "", 10);
+    					positionsN[3], positionsN[4], positionsN[5], 10);
     	}
     }
     
