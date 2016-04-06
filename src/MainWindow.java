@@ -11,6 +11,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
+import org.ejml.simple.SimpleMatrix;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -49,13 +50,13 @@ public class MainWindow {
 		 client = new ClientSocket();
 		 client.openSocket("192.168.1.0","40000");
 		 int pos [] = client.getPositions();
-		 sliderDX.setSelection(pos[0]);
-		 sliderDY.setSelection(pos[1]);
-		 sliderDZ.setMinimum(-500);
-		 sliderDZ.setSelection(pos[2]);
-		 sliderDO.setSelection(pos[3]);
-		 sliderDA.setSelection(pos[4]);
-		 sliderDT.setSelection(pos[5]);
+		 
+		 sliderDX.setSelection(pos[0]+500);
+		 sliderDY.setSelection(pos[1]+500);
+		 sliderDZ.setSelection(pos[2]+500);
+		 sliderDO.setSelection(pos[3]+500);
+		 sliderDA.setSelection(pos[4]+500);
+		 sliderDT.setSelection(pos[5]+500);
 		 
 		 
 		 
@@ -163,12 +164,12 @@ public class MainWindow {
 	 	textJSt.setText(rot[5]+"");
 		
 		int pos [] = client.getPositions();
-		sliderDX.setSelection(pos[0]);
-		sliderDY.setSelection(pos[1]);
-		sliderDZ.setSelection(pos[2]);
-		sliderDO.setSelection(pos[3]);
-		sliderDA.setSelection(pos[4]);
-		sliderDT.setSelection(pos[5]);
+		sliderDX.setSelection(pos[0]+500);
+		sliderDY.setSelection(pos[1]+500);
+		sliderDZ.setSelection(pos[2]+500);
+		sliderDO.setSelection(pos[3]+500);
+		sliderDA.setSelection(pos[4]+500);
+		sliderDT.setSelection(pos[5]+500);
 		textDSx.setText(pos[0]+"");
 		textDSy.setText(pos[1]+"");
 		textDSz.setText(pos[2]+"");
@@ -515,27 +516,27 @@ public class MainWindow {
 		
 		textDx = new Label(textJo, SWT.NONE);
 		textDx.setText("0");
-		textDx.setBounds(611, 187, 20, 15);
+		textDx.setBounds(611, 187, 28, 15);
 		
 		textDy = new Label(textJo, SWT.NONE);
 		textDy.setText("0");
-		textDy.setBounds(611, 210, 20, 15);
+		textDy.setBounds(611, 210, 28, 15);
 		
 		textDz = new Label(textJo, SWT.NONE);
 		textDz.setText("0");
-		textDz.setBounds(611, 233, 20, 15);
+		textDz.setBounds(611, 233, 28, 15);
 		
 		textDo = new Label(textJo, SWT.NONE);
 		textDo.setText("0");
-		textDo.setBounds(611, 254, 20, 15);
+		textDo.setBounds(611, 254, 28, 15);
 		
 		textDa = new Label(textJo, SWT.NONE);
 		textDa.setText("0");
-		textDa.setBounds(611, 279, 20, 15);
+		textDa.setBounds(611, 279, 28, 15);
 		
 		textDt = new Label(textJo, SWT.NONE);
 		textDt.setText("0");
-		textDt.setBounds(611, 300, 20, 15);
+		textDt.setBounds(611, 300, 28, 15);
 		
 		lblJ = new Label(textJo, SWT.NONE);
 		lblJ.setText("J1");
@@ -716,6 +717,26 @@ public class MainWindow {
 		
 		textM44 = new Text(textJo, SWT.BORDER);
 		textM44.setBounds(864, 83, 53, 17);
+		
+		Button btnUpdate = new Button(textJo, SWT.NONE);
+		btnUpdate.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				setSliders();
+			}
+		});
+		btnUpdate.setBounds(530, 323, 75, 25);
+		btnUpdate.setText("Update");
+		
+		Button btnNewButton = new Button(textJo, SWT.NONE);
+		btnNewButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				client.getMatrix4x4_3M(true);
+			}
+		});
+		btnNewButton.setBounds(72, 322, 75, 25);
+		btnNewButton.setText("Test");
 
 	}
 	public void setRotations(){
@@ -758,9 +779,17 @@ public class MainWindow {
 		
 	}
 	public void setSensorProgress(){
-		int rVals[] = client.getSensorRVals();
+		//int rVals[] = client.getSensorRVals();
 		int vals[] = client.getSensorVals();	
-		
+		/*double arrayV[][] = {{vals[0],vals[1],vals[2]}}; 
+    	SimpleMatrix V = new SimpleMatrix(arrayV);
+    	SimpleMatrix S = client.getMatrix4x4_2M().extractMatrix(0, 3, 0, 3).invert();
+    	V = V.mult(S);*/
+    	int rVals[] = client.getSensorRVals();	
+    	/*rVals[0] = (int) V.get(0);
+    	rVals[1] = (int) V.get(1);
+    	rVals[2] = (int) V.get(2);    	*/
+    	
 		if ( vals[0] < 0)
 			progressBarX.setState(SWT.PAUSED); 
 		else
@@ -828,44 +857,47 @@ public class MainWindow {
 	}
 	public void setAngleText(){
 		int pos [] = client.getPositions();
-		textO.setText((client.sensor.angles[0]-(int)Sensor.o0)+"");
-		textA.setText((client.sensor.angles[1]-(int)Sensor.a0)+"");
-		textT.setText((client.sensor.angles[2]-(int)Sensor.t0)+"");
+		textO.setText((client.rotations[0])+"");
+		textA.setText((client.rotations[1])+"");
+		textT.setText((client.rotations[2])+"");
 	}
 	public void setRMatrix(){
-		double [][] rM = client.getRMatrix();
-		textR11.setText(rM[0][0]+"");
-		textR12.setText(rM[0][1]+"");
-		textR13.setText(rM[0][2]+"");
-		textR21.setText(rM[1][0]+"");
-		textR22.setText(rM[1][1]+"");
-		textR23.setText(rM[1][2]+"");
-		textR31.setText(rM[2][0]+"");
-		textR32.setText(rM[2][1]+"");
-		textR33.setText(rM[2][2]+"");
+		SimpleMatrix R3x3 = client.getMatrix3x3M();
+		
+		textR11.setText(R3x3.get(0,0)+"");
+		textR12.setText(R3x3.get(0,1)+"");
+		textR13.setText(R3x3.get(0,2)+"");
+		textR21.setText(R3x3.get(1,0)+"");
+		textR22.setText(R3x3.get(1,1)+"");
+		textR23.setText(R3x3.get(1,2)+"");
+		textR31.setText(R3x3.get(2,0)+"");
+		textR32.setText(R3x3.get(2,1)+"");
+		textR33.setText(R3x3.get(2,2)+"");
 		
 	}
 	public void setMatrix4x4(){
-		double [][] rM = client.getMatrix4x4_2();
-		textM11.setText(rM[0][0]+"");
-		textM12.setText(rM[0][1]+"");
-		textM13.setText(rM[0][2]+"");
-		textM14.setText(rM[0][3]+"");
+		SimpleMatrix M  = client.getMatrix4x4_3M(false);
+		System.out.println(M);
 		
-		textM21.setText(rM[1][0]+"");
-		textM22.setText(rM[1][1]+"");
-		textM23.setText(rM[1][2]+"");
-		textM24.setText(rM[1][3]+"");
+		textM11.setText(M.get(0,0)+"");
+		textM12.setText(M.get(0,1)+"");
+		textM13.setText(M.get(0,2)+"");
+		textM14.setText(M.get(0,3)+"");
 		
-		textM31.setText(rM[2][0]+"");
-		textM32.setText(rM[2][1]+"");
-		textM33.setText(rM[2][2]+"");
-		textM34.setText(rM[2][3]+"");
+		textM21.setText(M.get(1,0)+"");
+		textM22.setText(M.get(1,1)+"");
+		textM23.setText(M.get(1,2)+"");
+		textM24.setText(M.get(1,3)+"");
 		
-		textM41.setText(rM[3][0]+"");
-		textM42.setText(rM[3][1]+"");
-		textM43.setText(rM[3][2]+"");
-		textM44.setText(rM[3][3]+"");
+		textM31.setText(M.get(2,0)+"");
+		textM32.setText(M.get(2,1)+"");
+		textM33.setText(M.get(2,2)+"");
+		textM34.setText(M.get(2,3)+"");
+		
+		textM41.setText(M.get(3,0)+"");
+		textM42.setText(M.get(3,1)+"");
+		textM43.setText(M.get(3,2)+"");
+		textM44.setText(M.get(3,3)+"");
 	}
 	
 	

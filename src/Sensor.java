@@ -8,7 +8,7 @@ import org.ejml.simple.SimpleMatrix;
 
 import com.atiia.automation.sensors.NetFTRDTPacket;
 import com.atiia.automation.sensors.NetFTSensor;
-import Jama.*; 
+
 
 public class Sensor {
 	String m_strSensorAddress;
@@ -17,26 +17,11 @@ public class Sensor {
     private DatagramSocket m_cNetFTSlowSocket;
     
     int vals[] = new int[6];
-    int rVals[] = new int[6];
-    int angles[] = new int[3];
     int timeToSleep;
-    double rMatrix[][] = new double[3][3];
-    
-    public static final double o0 = -109;
-    public static final double a0 = 180;
-    public static final double t0 = 160;
     
     public int [] getVals(){
     	return vals;
     }
-    public int [] getRVals(){
-    	return rVals;
-    }
-    
-    public void setAngles( int [] angles){
-    	this.angles = angles;
-    }
-    
     // конструктор по умолчанию   
     Sensor(){
     	m_strSensorAddress = "192.168.1.1";
@@ -118,7 +103,6 @@ public class Sensor {
 	    	return new SimpleMatrix();
 	    }
 	    
-	    
 	    public void dispData(NetFTRDTPacket displayRDT){
 	    	vals[0] = displayRDT.getFx()/1000;
 	    	vals[1] = displayRDT.getFy()/1000;
@@ -126,44 +110,7 @@ public class Sensor {
 	    	vals[3] = displayRDT.getTx()/1000;
 	    	vals[4] = displayRDT.getTy()/1000;
 	    	vals[5] = displayRDT.getTz()/1000;
-	    	int x = vals[0];
-	    	int y = vals[1];
-	    	int z = vals[2];
-	    	
-	    	double o = Math.toRadians(angles[0])-Math.toRadians(o0);
-	    	double a = Math.toRadians(angles[1])-Math.toRadians(a0);
-	    	double t = Math.toRadians(angles[2])-Math.toRadians(t0);
-	    	
-	    	double arrayZ0 [][]={{Math.cos(o),-Math.sin(o),0},
-								 {Math.sin(o), Math.cos(o), 0},
-								 {0,0,1}};
-	    	SimpleMatrix Rz0 = new SimpleMatrix(arrayZ0);
-	    	
-	    	double arrayY [][]={{Math.cos(a),0,Math.sin(a)},
-	    						{0,	1, 0},
-	    						{-Math.sin(a),0,Math.cos(a)}};
-	    	SimpleMatrix Ry = new SimpleMatrix(arrayY);
-	    	double arrayZ [][]={{Math.cos(t),-Math.sin(t),0},
-								{Math.sin(t), Math.cos(t), 0},
-								{0,0,1}};
-	    	SimpleMatrix Rz = new SimpleMatrix(arrayZ);
-	    	SimpleMatrix R  = Rz.mult(Ry).mult(Rz0);
-	    	SimpleMatrix Ro = R.invert();
-	    	
-	    	double arrayV[][] = {{x,y,z}}; 
-	    	SimpleMatrix V = new SimpleMatrix(arrayV);
-	    	SimpleMatrix Vn = V.mult(Ro);
-	    	rVals[0] =  (int)Vn.get(0,0);
-	    	rVals[1]  = (int)Vn.get(0,1);
-	    	rVals[2]  = (int)Vn.get(0,2);
-	    	for(int i=0;i<3;i++)
-	    	for(int j=0;j<3;j++)
-	    		rMatrix[i][j] = Ro.get(i,j);
-	    	
 	    }
-	}
-	public double[][] getRMatrix(){
-		return rMatrix;
 	}
 	
 
