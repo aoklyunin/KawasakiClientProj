@@ -149,219 +149,17 @@ public class ClientSocket {
     public int [] getPositions(){
     	return Arrays.copyOf(positions,6);
     }
-    public void processRVals(){		
-    	/*double o = Math.toRadians(angles[0]);
-    	double a = Math.toRadians(angles[1]);
-    	double t = Math.toRadians(angles[2]);
-	
-    	double arrayZ0 [][]={{Math.cos(o),-Math.sin(o),0},
-						 {Math.sin(o), Math.cos(o), 0},
-						 {0,0,1}};
-    	SimpleMatrix Rz0 = new SimpleMatrix(arrayZ0);
-	
-    	double arrayY [][]={{Math.cos(a),0,Math.sin(a)},
-						{0,	1, 0},
-						{-Math.sin(a),0,Math.cos(a)}};
-    	SimpleMatrix Ry = new SimpleMatrix(arrayY);
-    	double arrayZ [][]={{Math.cos(t),-Math.sin(t),0},
-						{Math.sin(t), Math.cos(t), 0},
-						{0,0,1}};
-    	SimpleMatrix Rz = new SimpleMatrix(arrayZ);
-    	SimpleMatrix R  = Rz.mult(Ry).mult(Rz0);
-		SimpleMatrix Ro = R.invert();
-		*/
-		double arrayV[][] = {{vals[0],vals[1],vals[2]}}; 
-		SimpleMatrix V = new SimpleMatrix(arrayV);
-		SimpleMatrix Vn = V.mult(getMatrix3x3M());
-		rVals[0] =  (int)Vn.get(0,0);
-		rVals[1]  = (int)Vn.get(0,1);
-		rVals[2]  = (int)Vn.get(0,2);
+    public void processRVals(){	
+		//double arrayV[][] = {{vals[0],vals[1],vals[2]}}; 
+		//SimpleMatrix V = new SimpleMatrix(arrayV);
+		//SimpleMatrix Vn = V.mult(getMatrix3x3M());
+		//rVals[0] =  (int)Vn.get(0,0);
+		//rVals[1]  = (int)Vn.get(0,1);
+		//rVals[2]  = (int)Vn.get(0,2);
     }
-    public double[][] getMatrix3x3(){
-    	double o = Math.toRadians(rotations[0]);
-    	double a = Math.toRadians(rotations[1]);
-    	double t = Math.toRadians(rotations[2]);
-    	
-    	double c1 = Math.cos(o);
-    	double s1 = Math.sin(o);
-    	double c2 = Math.cos(a);
-    	double s2 = Math.sin(a);
-    	double c3 = Math.cos(t);
-    	double s3 = Math.sin(t);
-    	
-    	double [][]M = {
-    			{c1*c2*c3-s1*s3, -c3*s1-c1*c2*s3, c1*s2},
-    			{c1*s3+ c2*c3*s1,c1*c3-c2*s1*s3,s1*s2},
-    			{-c3*s2,s2*s3,c2}   	  					
-    	};
-    	return M;
-    	
-    }
+   
     
-    public SimpleMatrix getMatrix3x3M(){
-    	return new SimpleMatrix(getMatrix3x3());
-    	
-    }
-    
-    public double[][] getMatrix4x4(){
-    	// первое колено
-    	double c1 = Math.cos(Math.toRadians(rotations[0]));
-    	double s1 = Math.sin(Math.toRadians(rotations[0]));
-    	double a1 [][]={{c1 ,-s1, 0 , 0 },
-    					{s1 , c1, 0 , 0 },
-    					{0  ,  0, 1 , 0},
-    					{0  ,  0, 0 , 1 }};
-    	SimpleMatrix A1 = new SimpleMatrix(a1);
-    	// второе колено
-    	double c2 = Math.cos(Math.toRadians(rotations[1]));
-    	double s2 = Math.sin(Math.toRadians(rotations[1]));
-    	double a2 [][]={{c2 , 0  , -s2 , 0 },
-    					{s2 , 0  ,  c2 , 0 },
-    					{0  , -1 ,   0 , d1},
-    					{0  ,  0 ,   0 , 1 }};
-    	SimpleMatrix A2 = new SimpleMatrix(a2);
-    	// третье колено
-    	double c3 = Math.cos(Math.toRadians(rotations[2]));
-    	double s3 = Math.sin(Math.toRadians(rotations[2]));
-    	double a3 [][]={{c3 ,-s3 , 0 , 0 },
-    					{s3 , c3 , 0 , 0 },
-    					{ 0 ,  0 , 1 , d2},
-    					{ 0 ,  0 , 0 , 1 }};
-    	SimpleMatrix A3 = new SimpleMatrix(a3);
-    	// четвёртое колено
-    	double c4 = Math.cos(Math.toRadians(rotations[3]));
-    	double s4 = Math.sin(Math.toRadians(rotations[3]));
-    	double a4 [][]={{c4, 0  , s4  , 0},
-    					{s4, 0  , -c4 , 0},
-    					{0 , 1 , 0   , d3},
-    					{0 , 0  , 0   , 1}};
-    	SimpleMatrix A4 = new SimpleMatrix(a4);
-    	// пятое колено
-    	double c5 = Math.cos(Math.toRadians(rotations[4]));
-    	double s5 = Math.sin(Math.toRadians(rotations[4]));
-    	double a5 [][]={{c5 , 0  , -s5 , 0},
-    					{s5 , 0  , c5  , 0},
-    					{0  , -1 , 1   , d4},
-    					{0  , 0  , 0   , 1}};
-    	SimpleMatrix A5 = new SimpleMatrix(a5);
-    	// шестое колено
-    	double c6 = Math.cos(Math.toRadians(rotations[5]));
-    	double s6 = Math.sin(Math.toRadians(rotations[5]));
-    	double a6 [][]={{c6 , 0  , s6  , 0},
-    					{s6 , 0  , -c6 , 0},
-    					{0  , 1 , 0   , d5},
-    					{0  , 0  , 0   , 1}};
-    	SimpleMatrix A6 = new SimpleMatrix(a6);
-    	SimpleMatrix M = A1.mult(A2).mult(A3).mult(A4).mult(A5).mult(A6);	
-    	double rMatrix[][]= new double[4][4];
-    	for(int i=0;i<4;i++)
-	    	for(int j=0;j<4;j++)
-	    		rMatrix[i][j] = M.get(i,j);
-    	return rMatrix;
-    }
-    public SimpleMatrix getMatrix4x4_2M(){
-    	// первое колено
-    	double c1 = Math.cos(Math.toRadians(rotations[0]));
-    	double s1 = Math.sin(Math.toRadians(rotations[0]));
-    	double a1 [][]={{c1 ,-s1, 0 , 0 },
-    					{s1 , c1, 0 , 0 },
-    					{0  ,  0, 1 , 0},
-    					{0  ,  0, 0 , 1 }};
-    	SimpleMatrix A1 = new SimpleMatrix(a1);
-    	// второе колено
-    	double c2 = Math.cos(Math.toRadians(rotations[1]));
-    	double s2 = Math.sin(Math.toRadians(rotations[1]));
-    	double a2 [][]={{c2 , 0  , -s2 , 0 },
-    					{0  , 1  ,  0  , 0 },
-    					{-s2, 0  , c2  , d1},
-    					{0  , 0  ,   0 , 1 }};
-    	SimpleMatrix A2 = new SimpleMatrix(a2);
-    	// третье колено
-    	double c3 = Math.cos(Math.toRadians(rotations[2]));
-    	double s3 = Math.sin(Math.toRadians(rotations[2]));
-    	double a3 [][]={{c3 ,0 , s3 , 0 },
-    					{0 , 1 , 0 , 0 },
-    					{-s3 ,  0 , c3 , d2},
-    					{ 0 ,  0 , 0 , 1 }};
-    	SimpleMatrix A3 = new SimpleMatrix(a3);
-    	// четвёртое колено
-    	double c4 = Math.cos(Math.toRadians(rotations[3]));
-    	double s4 = Math.sin(Math.toRadians(rotations[3]));
-    	double a4 [][]={{c4, -s4  ,0  , 0},
-    					{s4, c4  ,0 , 0},
-    					{0 , 0 , 1   , d3},
-    					{0 , 0  , 0   , 1}};
-    	SimpleMatrix A4 = new SimpleMatrix(a4);
-    	// пятое колено
-    	double c5 = Math.cos(Math.toRadians(rotations[4]));
-    	double s5 = Math.sin(Math.toRadians(rotations[4]));
-    	double a5 [][]={{c5 , 0  , s5 , 0},
-    					{0 , 1  , 0  , 0},
-    					{-s5  , 0 , c5   , d4},
-    					{0  , 0  , 0   , 1}};
-    	SimpleMatrix A5 = new SimpleMatrix(a5);
-    	// шестое колено
-    	double c6 = Math.cos(Math.toRadians(rotations[5]));
-    	double s6 = Math.sin(Math.toRadians(rotations[5]));
-    	double a6 [][]={{c6 , -s6  , 0  , 0},
-    					{s6 , c6  , 0 , 0},
-    					{0  , 0 , 1   , d5},
-    					{0  , 0  , 0   , 1}};
-    	SimpleMatrix A6 = new SimpleMatrix(a6);
-    	SimpleMatrix M = A1.mult(A2).mult(A3).mult(A4).mult(A5).mult(A6);	
-    	return M;
-    }
-    
-    public double [][] getMatrix4x4_3(boolean flgLog){
-    	double [][] a = new double[4][4];
-    	SimpleMatrix M = getMatrix4x4_3M(flgLog);
-    	for (int i =0;i<4;i++) 
-    		for (int j =0; j<4;j++)
-    			a[i][j] = M.get(i,j);
-    	return a;
-    }
-    public SimpleMatrix getMatrix4x4_3M(boolean flgLog){ 	
-    	    	
-    	double [] t = { 90+rotations[0],0,90,rotations[3],0,rotations[5]};
-    	double [] d = {430,450,450,100,70,10};
-    	double [] alpha = {90, rotations[1],-90+rotations[2],90,-90+rotations[4],0};
-    	double [] a = {0,0,0,0,0,0};
-    	SimpleMatrix R = SimpleMatrix.identity(4);
-    	if (flgLog){
-    		try(FileWriter writer = new FileWriter("c:\\Programming\\debug.txt", false))
-    		{
-    			writer.write("I="+R.toString());		
-    			for (int i=0;i<6;i++){
-    				writer.write("---------------------------------------------------------"+'\n');
-    				SimpleMatrix M = buildCurM4x4(Math.toRadians(t[i]),Math.toRadians(alpha[i]),a[i],d[i]);
-    				writer.write("t="+t[i]+" a="+a[i]+" alpha="+alpha[i]+" d="+d[i]+'\n');
-    				writer.write("A"+(i+1)+"="+M.toString()+'\n');	
-    				R = R.mult(M);
-    			}
-    			writer.write("R="+R.toString()+'\n');
-    			writer.flush();
-    		} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}else{
-    		for (int i=0;i<6;i++){
-    			SimpleMatrix M = buildCurM4x4(Math.toRadians(t[i]),Math.toRadians(alpha[i]),a[i],d[i]);
-    			R = R.mult(M);
-    		}
-    	}
-    	return R;
-    }
-    
-    
-    public double[][] getMatrix4x4_2(){
-    	SimpleMatrix M = getMatrix4x4_2M();
-    	double rMatrix[][]= new double[4][4];
-    	for(int i=0;i<4;i++)
-	    	for(int j=0;j<4;j++)
-	    		rMatrix[i][j] = M.get(i,j);
-    	return rMatrix;
-    }
+  
     
     public void runInPointD(int j1,int j2,int j3,int j4,int j5,int j6,int speed){
     	int [] arr  = {0,C_D_POINT,speed,j1,j2,j3,j4,j5,j6};   
@@ -598,15 +396,6 @@ public class ClientSocket {
 	     }
 	}
 	
-	SimpleMatrix buildCurM4x4(double t, double alpha,double a, double d){
-		double arrayM[][] = {
-				{Math.cos(t), -Math.cos(alpha)*Math.sin(t), Math.cos(alpha)*Math.sin(t) , a*Math.cos(t)},
-				{Math.sin(t), Math.cos(alpha)*Math.cos(t) , -Math.sin(alpha)*Math.cos(t), a*Math.sin(t)},
-				{0          , Math.sin(alpha)             , Math.cos(alpha)             , d            },
-				{0          , 0                           , 0                           , 1            }	
-		}; 			
-		return new SimpleMatrix(arrayM);		
-	}
 	
 	void closeSocket(){
 		int [] arr  = {0,C_STOP,0,0,0,0,0,0,0};

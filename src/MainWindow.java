@@ -732,11 +732,25 @@ public class MainWindow {
 		btnNewButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				client.getMatrix4x4_3M(true);
-			}
+				int [] p = client.getPositions();
+				//KawasakiMatrix.getMatrix3x3ZYZm(true,Integer.parseInt(cO.getText()), Integer.parseInt(cA.getText()), Integer.parseInt(cT.getText()));
+				KawasakiMatrix.getMatrix3x3ZYZm(true,p[3],p[4],p[5]);
+			};
 		});
-		btnNewButton.setBounds(72, 322, 75, 25);
+		btnNewButton.setBounds(123, 322, 75, 25);
 		btnNewButton.setText("Test");
+		
+		cO = new Text(textJo, SWT.BORDER);
+		cO.setText("0");
+		cO.setBounds(10, 330, 28, 17);
+		
+		cA = new Text(textJo, SWT.BORDER);
+		cA.setText("0");
+		cA.setBounds(48, 330, 28, 17);
+		
+		cT = new Text(textJo, SWT.BORDER);
+		cT.setText("0");
+		cT.setBounds(82, 330, 28, 17);
 
 	}
 	public void setRotations(){
@@ -759,8 +773,14 @@ public class MainWindow {
 	}
 	
 	public void setSensorText(){
-		int rVals[] = client.getSensorRVals();
 		int vals[] = client.getSensorVals();
+		int p[] = client.getPositions();
+		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,
+														p[3],p[4],p[5],
+														vals[0],vals[1],vals[2]);
+		textO.setText(p[3]+"");
+		textA.setText(p[4]+"");
+		textT.setText(p[5]+"");
 		
 		textX.setText(vals[0]+"");
 		textY.setText(vals[1]+"");
@@ -769,12 +789,12 @@ public class MainWindow {
 		textMy.setText(vals[4]+"");
 		textMz.setText(vals[5]+"");
 		
-		textRx.setText(rVals[0]+"");
-		textRy.setText(rVals[1]+"");
-		textRz.setText(rVals[2]+"");
-		textRMx.setText(rVals[3]+"");
-		textRMy.setText(rVals[4]+"");
-		textRMz.setText(rVals[5]+"");
+		textRx.setText(V.get(0,0)+"");
+		textRy.setText(V.get(1,0)+"");
+		textRz.setText(V.get(2,0)+"");
+		//textRMx.setText(rVals[3]+"");
+		//textRMy.setText(rVals[4]+"");
+		//textRMz.setText(rVals[5]+"");
 		
 		
 	}
@@ -789,6 +809,11 @@ public class MainWindow {
     	/*rVals[0] = (int) V.get(0);
     	rVals[1] = (int) V.get(1);
     	rVals[2] = (int) V.get(2);    	*/
+    	
+		int p[] = client.getPositions();
+		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,
+													   p[3],p[4],p[5],
+													   vals[0],vals[1],vals[2]);
     	
 		if ( vals[0] < 0)
 			progressBarX.setState(SWT.PAUSED); 
@@ -815,15 +840,15 @@ public class MainWindow {
 		else
         	progressBarMz.setState(SWT.NORMAL); 
 		
-		if ( rVals[0] < 0)
+		if ( V.get(0,0) < 0)
 			progressBarRx.setState(SWT.PAUSED); 
 		else
         	progressBarRx.setState(SWT.NORMAL); 
-		if ( rVals[1] < 0)
+		if ( V.get(1,0)< 0)
 			progressBarRy.setState(SWT.PAUSED); 
 		else
         	progressBarRy.setState(SWT.NORMAL); 
-		if ( rVals[2] < 0)
+		if ( V.get(2,0) < 0)
 			progressBarRz.setState(SWT.PAUSED); 
 		else
         	progressBarRz.setState(SWT.NORMAL); 
@@ -847,9 +872,9 @@ public class MainWindow {
 		progressBarMy.setSelection(Math.abs(vals[4]));
 		progressBarMz.setSelection(Math.abs(vals[5]));
 		
-		progressBarRx.setSelection(Math.abs(rVals[0]));
-		progressBarRy.setSelection(Math.abs(rVals[1]));
-		progressBarRz.setSelection(Math.abs(rVals[2]));
+		progressBarRx.setSelection(Math.abs((int)V.get(0,0)));
+		progressBarRy.setSelection(Math.abs((int)V.get(1,0)));
+		progressBarRz.setSelection(Math.abs((int)V.get(2,0)));
 		progressBarRMx.setSelection(Math.abs(rVals[3]));
 		progressBarRMy.setSelection(Math.abs(rVals[4]));
 		progressBarRMz.setSelection(Math.abs(rVals[5]));
@@ -857,13 +882,11 @@ public class MainWindow {
 	}
 	public void setAngleText(){
 		int pos [] = client.getPositions();
-		textO.setText((client.rotations[0])+"");
-		textA.setText((client.rotations[1])+"");
-		textT.setText((client.rotations[2])+"");
+		
 	}
 	public void setRMatrix(){
-		SimpleMatrix R3x3 = client.getMatrix3x3M();
-		
+		int [] p = client.getPositions();
+		SimpleMatrix R3x3 = KawasakiMatrix.getMatrix3x3ZYZm(false,p[3],p[4],p[5]);		
 		textR11.setText(R3x3.get(0,0)+"");
 		textR12.setText(R3x3.get(0,1)+"");
 		textR13.setText(R3x3.get(0,2)+"");
@@ -876,7 +899,7 @@ public class MainWindow {
 		
 	}
 	public void setMatrix4x4(){
-		SimpleMatrix M  = client.getMatrix4x4_3M(false);
+	/*	SimpleMatrix M  = client.getMatrix4x4_3M(false);
 		System.out.println(M);
 		
 		textM11.setText(M.get(0,0)+"");
@@ -897,7 +920,7 @@ public class MainWindow {
 		textM41.setText(M.get(3,0)+"");
 		textM42.setText(M.get(3,1)+"");
 		textM43.setText(M.get(3,2)+"");
-		textM44.setText(M.get(3,3)+"");
+		textM44.setText(M.get(3,3)+"");*/
 	}
 	
 	
@@ -1006,4 +1029,7 @@ public class MainWindow {
 	private Text textM24;
 	private Text textM34;
 	private Text textM44;
+	private Text cO;
+	private Text cA;
+	private Text cT;
 }
