@@ -4,25 +4,56 @@ import java.io.IOException;
 import org.ejml.simple.SimpleMatrix;
 
 public class KawasakiMatrix {
-	
-		public static SimpleMatrix getMassMatrix(){
-			double dx=-2;
-			double dy=-12;
-			double dz=-50;
-			double m = Math.sqrt(dx*dx+dy*dy+dz*dz);
+		static final double dx=-10000;
+		static final double dy=1000;
+		static final double dz=-50000;
+		
+		// масса датчика
+		static final double mass = Math.sqrt(dx*dx+dy*dy+dz*dz);
+		
+		public static SimpleMatrix getMassMatrix(){		
 			
-			double c1 = dx/m;
-			double s1 = Math.sqrt(1-c1*c1);
+			// скалярное произведение
+			double sM = (dx*0+dy*0+dz*mass);
+			double cA = -sM/(mass*mass);
+			double sA = Math.sqrt(1-cA*cA);
 			
-			double c2 = dy/m;
-			double s2 = Math.sqrt(1-c2*c2);
+			// векторное произведение 
+			double tx = dz*0 - dy*mass;
+			double ty = dx*mass - dz*0;
+			double tz = dx*0 - dy*0;
 			
-			double c3 = dz/m;
-			double s3 = Math.sqrt(1-c2*c2);
+			// нормируем
+			double l = Math.sqrt(tx*tx+ty*ty+tz*tz);
+			double x =tx/l;
+			double y =ty/l;
+			double z =tz/l;
+			double mat[][] = {
+					{ cA+(1-cA)*x*x ,  (1-cA)*x*y-sA*z , (1-cA)*x*z+sA*y},
+					{(1-cA)*y*x+sA*z , cA+(1-cA)*y*y   , (1-cA)*y*z-sA*x},
+					{(1-cA)*z*x-sA*y , (1-cA)*z*y+sA*x , cA+(1-cA)*z*z}
+			};
 			
-			return new SimpleMatrix();
-			
+			SimpleMatrix M = new SimpleMatrix(mat);
+			return M;
 		}
+		
+		public static SimpleMatrix getMatrix3x3XYZm(double c1, double c2, double c3){
+			double s1 = Math.sqrt(1-c1*c1);
+			double s2 = Math.sqrt(1-c2*c2);
+			double s3 = Math.sqrt(1-c3*c3);
+			
+			double [][] m = {	
+					{ c2*c3, -c2*s3, s2},
+					{ c1*s3+c3*s1*s2, c1*c3-s1*s2*s3, -c2*s1},
+					{ s1*s3-c1*c3*s2,c3*s1+c1*s2*s3 ,   c1*c2}
+			};
+			SimpleMatrix M = new SimpleMatrix(m);
+
+			return M;
+		}
+
+		
 		public static SimpleMatrix getBaseModification(){
 			double [][] d = {{0,-1,0},{1,0,0},{0,0,1}};
 			return new SimpleMatrix(d);
@@ -33,15 +64,28 @@ public class KawasakiMatrix {
 			return mToD(getMatrix3x3ZYZm(flgLog,
 					 o,  a,  t));			
 		}
-		public static SimpleMatrix modifyVector3m(boolean flgLog,
+		public static SimpleMatrix modifyVector3m(boolean flgLog, boolean flgUseMass,
 											double o, double a, double t,
 											double x, double y, double z ){
-			double v[][] = {{x},{y},{z}};
+			
 			SimpleMatrix R = getMatrix3x3ZYZm(false,o,a,t);
-			SimpleMatrix R1 = R.invert();
+			
 			SimpleMatrix Rn = R.mult(getBaseModification());
+			Rn = Rn.mult(getMassMatrix());
+			//System.out.println(getMassMatrix().toString());
+			double v[][] = {{x},{y},{z}};
 			SimpleMatrix V = new SimpleMatrix(v);
 			SimpleMatrix Vn = Rn.mult(V);
+			//компенсируем силу тяжести
+			double massD[][]={{0},{0},{-mass}};
+			SimpleMatrix Mass = new SimpleMatrix(massD);
+			Mass = (getMatrix3x3ZYZm(false,o,a,t).invert()).mult(Mass);
+			System.out.println("LOG");
+			System.out.println(Mass);
+			System.out.println(Vn);
+			
+			//Vn = Vn.minus(Mass);
+			System.out.println(Vn);
 			if (flgLog){
 				try(FileWriter writer = new FileWriter("c:\\Programming\\debug.txt", false))
 	    		{					
@@ -49,8 +93,6 @@ public class KawasakiMatrix {
 	    			writer.write("new: o="+Vn.get(0,0)+" a="+Vn.get(1,0)+" t="+Vn.get(2,0)+'\n');	
 					writer.write("---------------------------------------------------------"+'\n');	 
 					writer.write(R.toString());
-	    			writer.write("---------------------------------------------------------"+'\n');
-	    			writer.write(R1.toString());
 	    			writer.write("---------------------------------------------------------"+'\n');
 	    			writer.flush();
 	    		} catch (IOException e) {

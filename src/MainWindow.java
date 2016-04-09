@@ -26,6 +26,7 @@ public class MainWindow {
 	ClientSocket client; 	
 	boolean flgFirstRotGet = true;
 	boolean flgFirstPosGet = true;
+	boolean flgUseMatrix = true;
 
 	public void onTime(){
 		setSensorProgress();
@@ -751,6 +752,16 @@ public class MainWindow {
 		cT = new Text(textJo, SWT.BORDER);
 		cT.setText("0");
 		cT.setBounds(82, 330, 28, 17);
+		
+		Button btnChange = new Button(textJo, SWT.NONE);
+		btnChange.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				flgUseMatrix = !flgUseMatrix;
+			}
+		});
+		btnChange.setBounds(666, 129, 53, 25);
+		btnChange.setText("Change");
 
 	}
 	public void setRotations(){
@@ -774,8 +785,9 @@ public class MainWindow {
 	
 	public void setSensorText(){
 		int vals[] = client.getSensorVals();
+		
 		int p[] = client.getPositions();
-		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,
+		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,flgUseMatrix,
 														p[3],p[4],p[5],
 														vals[0],vals[1],vals[2]);
 		textO.setText(p[3]+"");
@@ -810,8 +822,16 @@ public class MainWindow {
     	rVals[1] = (int) V.get(1);
     	rVals[2] = (int) V.get(2);    	*/
     	
+    	double v[][] = {{vals[0]},{vals[1]},{vals[2]}};
+		SimpleMatrix tV = new SimpleMatrix(v);
+		SimpleMatrix nV = KawasakiMatrix.getMassMatrix().mult(tV);
+		//System.out.println(nV);
+		//System.out.println(tV);
+		//vals[0] = nV.getIndex(0, 0);
+		//vals[1] = nV.getIndex(1, 0);
+		//vals[2] = nV.getIndex(2, 0);
 		int p[] = client.getPositions();
-		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,
+		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,flgUseMatrix,
 													   p[3],p[4],p[5],
 													   vals[0],vals[1],vals[2]);
     	
@@ -886,7 +906,8 @@ public class MainWindow {
 	}
 	public void setRMatrix(){
 		int [] p = client.getPositions();
-		SimpleMatrix R3x3 = KawasakiMatrix.getMatrix3x3ZYZm(false,p[3],p[4],p[5]);		
+		//SimpleMatrix R3x3 = KawasakiMatrix.getMatrix3x3ZYZm(false,p[3],p[4],p[5]);		
+		SimpleMatrix R3x3 = KawasakiMatrix.getMassMatrix();
 		textR11.setText(R3x3.get(0,0)+"");
 		textR12.setText(R3x3.get(0,1)+"");
 		textR13.setText(R3x3.get(0,2)+"");
