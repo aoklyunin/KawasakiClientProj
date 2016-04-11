@@ -289,7 +289,7 @@ public class ClientSocket {
   	        	int arrS[] = sensor.getVals();
   	        	for (int i=0;i<6;i++) vals[i]=arrS[i];
   	        	processRVals();
-  	        	int [] arr  = {0,C_SENSOR_VALS,1, arrS[0]/100, arrS[1]/100, arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
+  	        	int [] arr  = {0,C_SENSOR_VALS,1, -arrS[0]/100, arrS[1]/100, -arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
   	        	sendVals2(arr);
   	        }
   	    }, 0, 200);
@@ -400,10 +400,9 @@ public class ClientSocket {
 	void closeSocket(){
 		int [] arr  = {0,C_STOP,0,0,0,0,0,0,0};
 		//getChars();
-		flush();
 		sendVals2(arr);
-		flgOpenSocket = false;
-		try {			
+		if (flgOpenSocket)
+		try {	
 			in.close();
 			sin.close();
 			out.close();
@@ -412,7 +411,8 @@ public class ClientSocket {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}
+		flgOpenSocket = false;
 		Custom.showMessage("Socket closed");
 		
 	}

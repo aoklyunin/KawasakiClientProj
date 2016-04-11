@@ -27,7 +27,7 @@ public class MainWindow {
 	boolean flgFirstRotGet = true;
 	boolean flgFirstPosGet = true;
 	boolean flgUseMatrix = true;
-
+	CamSocket camSocket;
 	public void onTime(){
 		setSensorProgress();
 		setSensorText();		
@@ -36,9 +36,11 @@ public class MainWindow {
 		setRotations();
 		setDekart();
 		setMatrix4x4();
+		setCam();
 	}
 	
 	public void init(){
+		 camSocket = new CamSocket();
 		 final int time = 100;
 		 timer = new Runnable() {
 			 public void run() {
@@ -49,7 +51,8 @@ public class MainWindow {
 		 };
 		 display.timerExec(time, timer);
 		 client = new ClientSocket();
-		 client.openSocket("192.168.1.0","40000");
+		// client.openSocket("192.168.1.0","40000");
+		 camSocket.openSocket("192.168.1.101",5005);
 		 int pos [] = client.getPositions();
 		 
 		 sliderDX.setSelection(pos[0]+500);
@@ -213,6 +216,7 @@ public class MainWindow {
 	public void onDestroy(){
 		client.closeSocket();
 		client.close();
+		camSocket.closeSocket();
 		System.out.println("Destroyed");
 	}	
 	/**
@@ -220,7 +224,7 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 		textJo = new Shell();
-		textJo.setSize(984, 416);
+		textJo.setSize(984, 638);
 		textJo.setText("SWT Application");
 		
 		progressBarX = new ProgressBar(textJo, SWT.NONE);
@@ -762,6 +766,31 @@ public class MainWindow {
 		});
 		btnChange.setBounds(666, 129, 53, 25);
 		btnChange.setText("Change");
+		
+		Label lblCam = new Label(textJo, SWT.NONE);
+		lblCam.setBounds(21, 381, 55, 15);
+		lblCam.setText("Cam:");
+		
+		text = new Text(textJo, SWT.BORDER);
+		text.setBounds(11, 414, 28, -1);
+		
+		textCam1 = new Text(textJo, SWT.BORDER);
+		textCam1.setBounds(11, 402, 65, 21);
+		
+		textCam2 = new Text(textJo, SWT.BORDER);
+		textCam2.setBounds(11, 430, 65, 21);
+		
+		textCam3 = new Text(textJo, SWT.BORDER);
+		textCam3.setBounds(11, 457, 65, 21);
+		
+		textCam4 = new Text(textJo, SWT.BORDER);
+		textCam4.setBounds(11, 485, 65, 21);
+		
+		textCam5 = new Text(textJo, SWT.BORDER);
+		textCam5.setBounds(11, 512, 65, 21);
+		
+		textCam6 = new Text(textJo, SWT.BORDER);
+		textCam6.setBounds(11, 539, 65, 21);
 
 	}
 	public void setRotations(){
@@ -783,6 +812,15 @@ public class MainWindow {
 		textDt.setText(pos[5]+"");		
 	}
 	
+	public void setCam(){
+		int vals[] = camSocket.getVals();
+		textCam1.setText(vals[0]+"");
+		textCam2.setText(vals[1]+"");
+		textCam3.setText(vals[2]+"");
+		textCam4.setText(vals[3]+"");
+		textCam5.setText(vals[4]+"");
+		textCam6.setText(vals[5]+"");
+	}
 	public void setSensorText(){
 		int vals[] = client.getSensorVals();
 		
@@ -1053,4 +1091,11 @@ public class MainWindow {
 	private Text cO;
 	private Text cA;
 	private Text cT;
+	private Text text;
+	private Text textCam1;
+	private Text textCam2;
+	private Text textCam3;
+	private Text textCam4;
+	private Text textCam5;
+	private Text textCam6;
 }
