@@ -178,6 +178,11 @@ public class ClientSocket {
     	int [] arr  = {0,C_J_POINT,speed,j1,j2,j3,j4,j5,j6};   
     	sendVals2(arr);
     }
+    
+    public void runInDeltaPointA(int j1,int j2,int j3,int j4,int j5,int j6,int speed){
+    	int [] arr  = {0,C_J,speed,j1,j2,j3,j4,j5,j6};   
+    	sendVals2(arr);
+    }
      
     public void setPoint(int [] coords, int speed){
     	int [] arr  = {0,C_SET_POS,speed,coords[0],coords[1],coords[2],coords[3],coords[4],coords[5]};   

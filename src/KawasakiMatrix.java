@@ -4,14 +4,15 @@ import java.io.IOException;
 import org.ejml.simple.SimpleMatrix;
 
 public class KawasakiMatrix {
-		static final double dx=-10000;
-		static final double dy=1000;
+		static final double dx=-12000;
+		static final double dy= 2000;
 		static final double dz=-50000;
+		
 		
 		// масса датчика
 		static final double mass = Math.sqrt(dx*dx+dy*dy+dz*dz);
 		
-		public static SimpleMatrix getMassMatrix(){		
+		public static SimpleMatrix getMw(){		
 			
 			// скал€рное произведение
 			double sM = (dx*0+dy*0+dz*mass);
@@ -32,8 +33,7 @@ public class KawasakiMatrix {
 					{ cA+(1-cA)*x*x ,  (1-cA)*x*y-sA*z , (1-cA)*x*z+sA*y},
 					{(1-cA)*y*x+sA*z , cA+(1-cA)*y*y   , (1-cA)*y*z-sA*x},
 					{(1-cA)*z*x-sA*y , (1-cA)*z*y+sA*x , cA+(1-cA)*z*z}
-			};
-			
+			};			
 			SimpleMatrix M = new SimpleMatrix(mat);
 			return M;
 		}
@@ -64,28 +64,29 @@ public class KawasakiMatrix {
 			return mToD(getMatrix3x3ZYZm(flgLog,
 					 o,  a,  t));			
 		}
+		public static void calculateMw(){
+			
+		}
 		public static SimpleMatrix modifyVector3m(boolean flgLog, boolean flgUseMass,
 											double o, double a, double t,
 											double x, double y, double z ){
-			
-			SimpleMatrix R = getMatrix3x3ZYZm(false,o,a,t);
-			
-			SimpleMatrix Rn = R.mult(getBaseModification());
-			Rn = Rn.mult(getMassMatrix());
+			SimpleMatrix Mw = getMw();
+			SimpleMatrix Mi = getMatrix3x3ZYZm(false,o,a,t);
+			SimpleMatrix R  = Mw.mult(Mi);
+			//SimpleMatrix Rn = R.mult(getBaseModification());
 			//System.out.println(getMassMatrix().toString());
 			double v[][] = {{x},{y},{z}};
 			SimpleMatrix V = new SimpleMatrix(v);
-			SimpleMatrix Vn = Rn.mult(V);
+			SimpleMatrix Vn = R.mult(V);
 			//компенсируем силу т€жести
-			double massD[][]={{0},{0},{-mass}};
-			SimpleMatrix Mass = new SimpleMatrix(massD);
-			Mass = (getMatrix3x3ZYZm(false,o,a,t).invert()).mult(Mass);
-			System.out.println("LOG");
-			System.out.println(Mass);
-			System.out.println(Vn);
-			
+			//double massD[][]={{0},{0},{-mass}};
+			//SimpleMatrix Mass = new SimpleMatrix(massD);
+			//Mass = (getMatrix3x3ZYZm(false,o,a,t).invert()).mult(Mass);
+			//System.out.println("LOG");
+			//System.out.println(Mass);
+			//System.out.println(Vn);			
 			//Vn = Vn.minus(Mass);
-			System.out.println(Vn);
+			//System.out.println(Vn);
 			if (flgLog){
 				try(FileWriter writer = new FileWriter("c:\\Programming\\debug.txt", false))
 	    		{					

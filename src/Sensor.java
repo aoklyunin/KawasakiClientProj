@@ -20,8 +20,37 @@ public class Sensor {
     int timeToSleep;
     
     public int [] getVals(){
-    	return vals;
+    	int [] a = new int[6];
+    	
+    	System.arraycopy( vals, 0, a, 0,6 );
+    	return a;
     }
+    
+    public int [] getRVals(float o,float a,float t){
+    	SimpleMatrix Ms = KawasakiMatrix.getBaseModification();
+    	SimpleMatrix Mf = KawasakiMatrix.getMatrix3x3ZYZm(false, o, a, t);
+    	int [] arr = new int[6];    	
+    	// вычетаем из показаний датчика внутренние напряжения и силу тяжести
+    	System.arraycopy( vals, 0, arr, 0,6 );
+    	arr[0] += 12500; 
+    	arr[2] += 17000;
+    	double v[][] = {{0},{0},{-30000}};
+    	SimpleMatrix V = new SimpleMatrix(v);
+    	SimpleMatrix M = Mf.invert();
+    	V = M.mult(V);
+    	V = Ms.invert().mult(V);
+    	for (int i=0;i<3;i++)
+    		arr[i]-=V.get(i,0);
+    	// преобразуем показания из системы датчика в базовую
+    	double v2[][]= {{arr[0]},{arr[1]},{arr[2]}};
+    	SimpleMatrix V2 = new SimpleMatrix(v2);
+    	V2 = Mf.mult(Ms).mult(V2);
+    	for (int i=0;i<3;i++)
+    		arr[i]= (int)V2.get(i,0);
+    	return arr;
+    }
+    
+    
     // конструктор по умолчанию   
     Sensor(){
     	m_strSensorAddress = "192.168.1.1";
@@ -110,6 +139,7 @@ public class Sensor {
 	    	vals[3] = displayRDT.getTx()/1000;
 	    	vals[4] = displayRDT.getTy()/1000;
 	    	vals[5] = displayRDT.getTz()/1000;
+	    	//System.out.println(vals[0]+" "+vals[1]+" " +vals[2]);
 	    }
 	}
 	

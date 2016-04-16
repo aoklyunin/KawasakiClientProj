@@ -40,7 +40,7 @@ public class MainWindow {
 	}
 	
 	public void init(){
-		 camSocket = new CamSocket();
+		 
 		 final int time = 100;
 		 timer = new Runnable() {
 			 public void run() {
@@ -51,8 +51,9 @@ public class MainWindow {
 		 };
 		 display.timerExec(time, timer);
 		 client = new ClientSocket();
-		// client.openSocket("192.168.1.0","40000");
-		 camSocket.openSocket("192.168.1.101",5005);
+		 camSocket = new CamSocket();
+		 client.openSocket("192.168.1.0","40000");
+		 //camSocket.openSocket("192.168.1.101",5005);
 		 int pos [] = client.getPositions();
 		 
 		 sliderDX.setSelection(pos[0]+500);
@@ -791,6 +792,93 @@ public class MainWindow {
 		
 		textCam6 = new Text(textJo, SWT.BORDER);
 		textCam6.setBounds(11, 539, 65, 21);
+		
+		text_1 = new Text(textJo, SWT.BORDER);
+		text_1.setBounds(166, 393, 76, 21);
+		
+		text_2 = new Text(textJo, SWT.BORDER);
+		text_2.setBounds(166, 417, 76, 21);
+		
+		text_3 = new Text(textJo, SWT.BORDER);
+		text_3.setBounds(166, 442, 76, 21);
+		
+		text_4 = new Text(textJo, SWT.BORDER);
+		text_4.setBounds(272, 393, 76, 21);
+		
+		text_5 = new Text(textJo, SWT.BORDER);
+		text_5.setBounds(272, 417, 76, 21);
+		
+		text_6 = new Text(textJo, SWT.BORDER);
+		text_6.setBounds(272, 442, 76, 21);
+		
+		text_7 = new Text(textJo, SWT.BORDER);
+		text_7.setBounds(379, 393, 76, 21);
+		
+		text_8 = new Text(textJo, SWT.BORDER);
+		text_8.setBounds(379, 442, 76, 21);
+		
+		text_9 = new Text(textJo, SWT.BORDER);
+		text_9.setBounds(379, 417, 76, 21);
+		
+		text_10 = new Text(textJo, SWT.BORDER);
+		text_10.setBounds(482, 393, 76, 21);
+		
+		text_11 = new Text(textJo, SWT.BORDER);
+		text_11.setBounds(482, 417, 76, 21);
+		
+		text_12 = new Text(textJo, SWT.BORDER);
+		text_12.setBounds(482, 442, 76, 21);
+		
+		Label lblSensor = new Label(textJo, SWT.NONE);
+		lblSensor.setBounds(189, 372, 55, 15);
+		lblSensor.setText("Sensor");
+		
+		Label label = new Label(textJo, SWT.NONE);
+		label.setBounds(285, 372, 55, 15);
+		label.setText("\u0424\u043B\u0430\u043D\u0435\u0446");
+		
+		Label label_1 = new Label(textJo, SWT.NONE);
+		label_1.setBounds(400, 372, 28, 15);
+		label_1.setText("\u0411\u0430\u0437\u0430");
+		
+		label_2 = new Label(textJo, SWT.NONE);
+		label_2.setBounds(497, 372, 55, 15);
+		label_2.setText("\u041C\u0438\u0440");
+		
+		Button btnNewButton_1 = new Button(textJo, SWT.NONE);
+		btnNewButton_1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				client.setParams(100,
+						 		 100,
+						         20,
+						 		 300,
+						 		 5,
+						 		 5);
+				client.home1();
+				int pos1[] = {-6,156,837,93,125,156};
+				client.runInPointD(pos1,"",100);
+				client.runInDeltaPointA(0, 0, -15, 0, 0, 0, 10);
+				client.runInDeltaPointA(-60, 0, 0, 0, 0, 0, 10);
+				int pos2[] = {-861,372,279,159,166,98};
+				client.runInPointD(pos2,"",60);
+				try {
+					Thread.sleep(4000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				client.setParams(100,
+				 		 100,
+				         20,
+				 		 100,
+				 		 5,
+				 		 5);
+				client.home2();
+			}
+		});
+		btnNewButton_1.setBounds(273, 508, 75, 25);
+		btnNewButton_1.setText("Test");
 
 	}
 	public void setRotations(){
@@ -832,6 +920,9 @@ public class MainWindow {
 		textA.setText(p[4]+"");
 		textT.setText(p[5]+"");
 		
+	
+    	int rVals[] = client.sensor.getRVals(p[3],p[4],p[5]);	
+    	
 		textX.setText(vals[0]+"");
 		textY.setText(vals[1]+"");
 		textZ.setText(vals[2]+"");
@@ -839,12 +930,12 @@ public class MainWindow {
 		textMy.setText(vals[4]+"");
 		textMz.setText(vals[5]+"");
 		
-		textRx.setText(V.get(0,0)+"");
-		textRy.setText(V.get(1,0)+"");
-		textRz.setText(V.get(2,0)+"");
-		//textRMx.setText(rVals[3]+"");
-		//textRMy.setText(rVals[4]+"");
-		//textRMz.setText(rVals[5]+"");
+		textRx.setText(rVals[0]+"");
+		textRy.setText(rVals[1]+"");
+		textRz.setText(rVals[2]+"");
+		textRMx.setText(rVals[3]+"");
+		textRMy.setText(rVals[4]+"");
+		textRMz.setText(rVals[5]+"");
 		
 		
 	}
@@ -855,23 +946,24 @@ public class MainWindow {
     	SimpleMatrix V = new SimpleMatrix(arrayV);
     	SimpleMatrix S = client.getMatrix4x4_2M().extractMatrix(0, 3, 0, 3).invert();
     	V = V.mult(S);*/
-    	int rVals[] = client.getSensorRVals();	
+		int p[] = client.getPositions();
+    	int rVals[] = client.sensor.getRVals(p[3],p[4],p[5]);	
     	/*rVals[0] = (int) V.get(0);
     	rVals[1] = (int) V.get(1);
     	rVals[2] = (int) V.get(2);    	*/
     	
     	double v[][] = {{vals[0]},{vals[1]},{vals[2]}};
 		SimpleMatrix tV = new SimpleMatrix(v);
-		SimpleMatrix nV = KawasakiMatrix.getMassMatrix().mult(tV);
+		SimpleMatrix nV = KawasakiMatrix.getMw().mult(tV);
 		//System.out.println(nV);
 		//System.out.println(tV);
 		//vals[0] = nV.getIndex(0, 0);
 		//vals[1] = nV.getIndex(1, 0);
 		//vals[2] = nV.getIndex(2, 0);
-		int p[] = client.getPositions();
-		SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,flgUseMatrix,
-													   p[3],p[4],p[5],
-													   vals[0],vals[1],vals[2]);
+		
+		//SimpleMatrix V = KawasakiMatrix.modifyVector3m(false,flgUseMatrix,
+		//											   p[3],p[4],p[5],
+		//											   vals[0],vals[1],vals[2]);
     	
 		if ( vals[0] < 0)
 			progressBarX.setState(SWT.PAUSED); 
@@ -898,15 +990,15 @@ public class MainWindow {
 		else
         	progressBarMz.setState(SWT.NORMAL); 
 		
-		if ( V.get(0,0) < 0)
+		if ( rVals[0] < 0)
 			progressBarRx.setState(SWT.PAUSED); 
 		else
         	progressBarRx.setState(SWT.NORMAL); 
-		if ( V.get(1,0)< 0)
+		if ( rVals[1]< 0)
 			progressBarRy.setState(SWT.PAUSED); 
 		else
         	progressBarRy.setState(SWT.NORMAL); 
-		if ( V.get(2,0) < 0)
+		if ( rVals[2] < 0)
 			progressBarRz.setState(SWT.PAUSED); 
 		else
         	progressBarRz.setState(SWT.NORMAL); 
@@ -930,9 +1022,9 @@ public class MainWindow {
 		progressBarMy.setSelection(Math.abs(vals[4]));
 		progressBarMz.setSelection(Math.abs(vals[5]));
 		
-		progressBarRx.setSelection(Math.abs((int)V.get(0,0)));
-		progressBarRy.setSelection(Math.abs((int)V.get(1,0)));
-		progressBarRz.setSelection(Math.abs((int)V.get(2,0)));
+		progressBarRx.setSelection(Math.abs(rVals[0]));
+		progressBarRy.setSelection(Math.abs(rVals[1]));
+		progressBarRz.setSelection(Math.abs(rVals[2]));
 		progressBarRMx.setSelection(Math.abs(rVals[3]));
 		progressBarRMy.setSelection(Math.abs(rVals[4]));
 		progressBarRMz.setSelection(Math.abs(rVals[5]));
@@ -945,7 +1037,7 @@ public class MainWindow {
 	public void setRMatrix(){
 		int [] p = client.getPositions();
 		//SimpleMatrix R3x3 = KawasakiMatrix.getMatrix3x3ZYZm(false,p[3],p[4],p[5]);		
-		SimpleMatrix R3x3 = KawasakiMatrix.getMassMatrix();
+		SimpleMatrix R3x3 = KawasakiMatrix.getMw();
 		textR11.setText(R3x3.get(0,0)+"");
 		textR12.setText(R3x3.get(0,1)+"");
 		textR13.setText(R3x3.get(0,2)+"");
@@ -955,6 +1047,9 @@ public class MainWindow {
 		textR31.setText(R3x3.get(2,0)+"");
 		textR32.setText(R3x3.get(2,1)+"");
 		textR33.setText(R3x3.get(2,2)+"");
+		
+	}
+	public void setVectorVals(){
 		
 	}
 	public void setMatrix4x4(){
@@ -1098,4 +1193,17 @@ public class MainWindow {
 	private Text textCam4;
 	private Text textCam5;
 	private Text textCam6;
+	private Text text_1;
+	private Text text_2;
+	private Text text_3;
+	private Text text_4;
+	private Text text_5;
+	private Text text_6;
+	private Text text_7;
+	private Text text_8;
+	private Text text_9;
+	private Text text_10;
+	private Text text_11;
+	private Text text_12;
+	private Label label_2;
 }

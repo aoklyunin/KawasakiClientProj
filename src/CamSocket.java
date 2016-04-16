@@ -41,6 +41,7 @@ class CamSocket {
 	}
 	
 	public void closeSocket(){			
+		if (flgOpenSocket){
 		System.out.println("Close Cam Socket");
 		flgOpenSocket = false;
 				
@@ -56,7 +57,7 @@ class CamSocket {
 			}		
 			Custom.showMessage("Socket closed");
 			
-		
+		}
 	}
 	public int[] getVals(){
 		return vals;
