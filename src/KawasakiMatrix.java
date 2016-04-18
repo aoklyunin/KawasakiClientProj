@@ -8,6 +8,36 @@ public class KawasakiMatrix {
 		static final double dy= 2000;
 		static final double dz=-50000;
 		
+		static double[] getInstrumentVector(float o, float a, float t){
+			SimpleMatrix M = getMatrix3x3ZYZm(false,o,a,t);
+			double v[][] = {{0},{0},{1}};
+			SimpleMatrix V = new SimpleMatrix(v);
+			V = M.mult(V);
+			double rv [] = {V.get(0,0),V.get(1,0),V.get(2,0)};
+			for (int i=0;i<3;i++)
+				if(Math.abs(rv[i])<0.0001) rv[i] = 0;
+			return rv;
+		}
+		static double [] parceMatrixXYZ(double [][] m){			
+			double [] a = new double[3];
+			//for (int i=0;i<3;i++)
+			//for (int j=0;j<3;j++)
+				//if (Math.abs(m[i][j])<0.01) 
+				//	m[i][j] = 0;
+			a[1] = Math.atan2(Math.sqrt(m[0][2]*m[0][2]),m[0][2])/Math.PI*180;
+			a[0] = Math.atan2(m[2][2],-m[1][2])/Math.PI*180;
+			a[2] = Math.atan2(m[0][0],-m[0][1])/Math.PI*180;
+			return a;			
+		}
+		
+		static double [] ZYZtoXYZ(double[] angles){
+			double [][] m = getMatrix3x3ZYZd(false,angles[0],angles[1],angles[2]);
+			return parceMatrixXYZ(m);
+		}
+		static double [] XYZtoZYZ(double[] angles){
+			double res[]=new double[3];
+			return res;
+		}
 		
 		// масса датчика
 		static final double mass = Math.sqrt(dx*dx+dy*dy+dz*dz);
@@ -111,7 +141,18 @@ public class KawasakiMatrix {
 			double cA = Math.cos(Math.toRadians(a));
 			double sA = Math.sin(Math.toRadians(a));
 			double cT = Math.cos(Math.toRadians(t));
-			double sT = Math.sin(Math.toRadians(t));								
+			double sT = Math.sin(Math.toRadians(t));
+			
+			/*if (Math.abs(sO)<0.0000001) cO = 0;
+			if (Math.abs(sO)<0.0000001) sO = 0;
+			if (Math.abs(cA)<0.0000001) cA = 0;
+			if (Math.abs(sA)<0.0000001) sA = 0;
+			if (Math.abs(cT)<0.0000001) cT = 0;
+			if (Math.abs(sT)<0.0000001) sT = 0;*/
+			
+		
+				
+			System.out.println("cA: "+cA+" | "+ Math.cos(Math.toRadians(a)));
 			
 			double [][] m = {
 					{ cO*cA*cT-sO*sT, -cO*cA*sT-sO*cT, cO*sA},
@@ -160,9 +201,9 @@ public class KawasakiMatrix {
 		}
     
 		public static double[][] mToD(SimpleMatrix M){
-			double [][] a = new double[4][4];
-	    	for (int i =0;i<4;i++) 
-	    		for (int j =0; j<4;j++)
+			double [][] a = new double[3][3];
+	    	for (int i =0;i<3;i++) 
+	    		for (int j =0; j<3;j++)
 	    			a[i][j] = M.get(i,j);
 	    	return a;
 		}

@@ -54,6 +54,7 @@ public class ClientSocket {
 	final static int ERR_INRANGE_J6 = 32; //до джоинта 6 не достать
 	final static int ERR_NOT_INRANGE = 32786; //вне досягаемости
 	final static int C_SET_PARAMS = 23; // параметры гравитации
+	final static int C_IN_POS = 24; // дошёл до позиции
 	
 	final static int X_COORD = 0;
 	final static int Y_COORD = 1;
@@ -98,6 +99,7 @@ public class ClientSocket {
 		}
     }
     int pos = 0;
+    boolean flgInPosition = false;
     boolean flgSpace = false;
     boolean flgFirstSpace = true;
     int [] lst = new int[9];
@@ -260,6 +262,9 @@ public class ClientSocket {
       							   			}
       							   			if (flgOpenLog)writeStatsToLog();
       							   			break;
+      							   		case C_IN_POS:
+      							   			flgInPosition = true;
+      							   			break;
       							   }
       							   pos = 0;
       						   }
@@ -278,6 +283,14 @@ public class ClientSocket {
       	   }
     	}
     }
+    public boolean getInPosition(){
+    	if (flgInPosition){
+    		flgInPosition = false;
+    		return true;
+    	}else{
+    		return false;
+    	}
+    }
     boolean flgCom = false;
     public ClientSocket() {
     	sensor = new Sensor();
@@ -291,7 +304,7 @@ public class ClientSocket {
     	sensorTime.schedule(new TimerTask() {
   	        @Override
   	        public void run() { //ПЕРЕЗАГРУЖАЕМ МЕТОД RUN В КОТОРОМ ДЕЛАЕТЕ ТО ЧТО ВАМ НАДО
-  	        	int arrS[] = sensor.getVals();
+  	        	int arrS[] = sensor.getRVals();
   	        	for (int i=0;i<6;i++) vals[i]=arrS[i];
   	        	processRVals();
   	        	int [] arr  = {0,C_SENSOR_VALS,1, -arrS[0]/100, arrS[1]/100, -arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
@@ -319,8 +332,8 @@ public class ClientSocket {
     	int [] arr  = {0,C_START_GRAVITY_PROGRAM,0,minVals[0],minVals[1],minVals[2],minVals[3],minVals[4],minVals[5]};
 		sendVals2(arr);
     }
-    void startGravityProgram(int kx, int ky, int kz,int ix,int iy,int iz){
-    	int [] arr  = {0,C_START_GRAVITY_PROGRAM,0,kx,ky,kz,ix,iy,iz};
+    void startGravityProgram(int k, int i,int min){
+    	int [] arr  = {0,C_START_GRAVITY_PROGRAM,min,k,k,k,i,i,i};
 		sendVals2(arr);
     }
     

@@ -532,12 +532,12 @@ public class ClientGui extends JFrame {
 						 Integer.parseInt(mmpsEdit.getText()),
 						 Integer.parseInt(deltaEdit.getText()),
 						 Integer.parseInt(maxDeltaEdit.getText()));
-				client.startGravityProgram(Integer.parseInt(kPxEdit.getText()),
+				/*client.startGravityProgram(Integer.parseInt(kPxEdit.getText()),
 										   Integer.parseInt(kPyEdit.getText()),
 										   Integer.parseInt(kPzEdit.getText()),
 										   Integer.parseInt(kIxEdit.getText()),
 										   Integer.parseInt(kIyEdit.getText()),
-										   Integer.parseInt(kIzEdit.getText()));
+										   Integer.parseInt(kIzEdit.getText()));*/
 				client.openLog("1.txt");
 			}	    	
 	    });	

@@ -3,9 +3,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-
 import org.ejml.simple.SimpleMatrix;
-
 import com.atiia.automation.sensors.NetFTRDTPacket;
 import com.atiia.automation.sensors.NetFTSensor;
 
@@ -17,37 +15,50 @@ public class Sensor {
     private DatagramSocket m_cNetFTSlowSocket;
     
     int vals[] = new int[6];
+    int rVals[] = new int[6];
     int timeToSleep;
+    float o = 0;
+    float a = 0;
+    float t = 0;
+    		
     
     public int [] getVals(){
-    	int [] a = new int[6];
-    	
+    	int [] a = new int[6];    	
     	System.arraycopy( vals, 0, a, 0,6 );
     	return a;
     }
     
-    public int [] getRVals(float o,float a,float t){
+    public int [] getRVals(){
+    	int [] a = new int[6];    	
+    	System.arraycopy( rVals, 0, a, 0,6 );
+    	return a;
+    }
+    
+    public void setAngles(float o,float a,float t){
+    	this.o = o;
+    	this.a = a;
+    	this.t = t;
+    }
+    public void processRVals(){
     	SimpleMatrix Ms = KawasakiMatrix.getBaseModification();
     	SimpleMatrix Mf = KawasakiMatrix.getMatrix3x3ZYZm(false, o, a, t);
-    	int [] arr = new int[6];    	
     	// вычетаем из показаний датчика внутренние напряжения и силу тяжести
-    	System.arraycopy( vals, 0, arr, 0,6 );
-    	arr[0] += 12500; 
-    	arr[2] += 17000;
+    	System.arraycopy( vals, 0, rVals, 0,6 );
+    	rVals[0] += 12500; 
+    	rVals[2] += 21000;
     	double v[][] = {{0},{0},{-30000}};
     	SimpleMatrix V = new SimpleMatrix(v);
     	SimpleMatrix M = Mf.invert();
     	V = M.mult(V);
     	V = Ms.invert().mult(V);
     	for (int i=0;i<3;i++)
-    		arr[i]-=V.get(i,0);
+    		rVals[i]-=V.get(i,0);
     	// преобразуем показания из системы датчика в базовую
-    	double v2[][]= {{arr[0]},{arr[1]},{arr[2]}};
+    	double v2[][]= {{rVals[0]},{rVals[1]},{rVals[2]}};
     	SimpleMatrix V2 = new SimpleMatrix(v2);
     	V2 = Mf.mult(Ms).mult(V2);
     	for (int i=0;i<3;i++)
-    		arr[i]= (int)V2.get(i,0);
-    	return arr;
+    		rVals[i]= (int)V2.get(i,0);
     }
     
     
@@ -139,7 +150,7 @@ public class Sensor {
 	    	vals[3] = displayRDT.getTx()/1000;
 	    	vals[4] = displayRDT.getTy()/1000;
 	    	vals[5] = displayRDT.getTz()/1000;
-	    	//System.out.println(vals[0]+" "+vals[1]+" " +vals[2]);
+	    	processRVals();
 	    }
 	}
 	
