@@ -239,6 +239,7 @@ public class ClientSocket {
       							   		case  C_GetPositionAxis:
       							   			for (int i=0;i<6;i++)
       							   				rotations[i]=lst[i+3];
+      							   			sensor.setJ(rotations);
       							   		break;
       							   		case  C_GetPosition:
       							   			for (int i=0;i<6;i++)
@@ -300,14 +301,24 @@ public class ClientSocket {
  	        public void run() { //ÏÅÐÅÇÀÃÐÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎÐÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
  	        		getChars();	
  	        }
- 	    }, 100, 100); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
+ 	    }, 200, 200); //(4000 - ÏÎÄÎÆÄÀÒÜ ÏÅÐÅÄ ÍÀ×ÀËÎÌ Â ÌÈËÈÑÅÊ, ÏÎÂÒÎÐßÒÑß 4 ÑÅÊÓÍÄÛ (1 ÑÅÊ = 1000 ÌÈËÈÑÅÊ))
     	sensorTime.schedule(new TimerTask() {
   	        @Override
   	        public void run() { //ÏÅÐÅÇÀÃÐÓÆÀÅÌ ÌÅÒÎÄ RUN Â ÊÎÒÎÐÎÌ ÄÅËÀÅÒÅ ÒÎ ×ÒÎ ÂÀÌ ÍÀÄÎ
   	        	int arrS[] = sensor.getRVals();
-  	        	for (int i=0;i<6;i++) vals[i]=arrS[i];
+  	        	for (int i=0;i<6;i++){
+  	        		vals[i]=arrS[i];
+  	        	}
   	        	processRVals();
-  	        	int [] arr  = {0,C_SENSOR_VALS,1, -arrS[0]/100, arrS[1]/100, -arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
+  	        	int max = 3;
+  	        	for (int i=4;i<7;i++){
+  	        		if (Math.abs(arrS[i])>Math.abs(arrS[max]))
+  	        			max = i;       			
+  	        	}
+  	        	for (int i=3;i<7;i++){
+  	        		if(i!=max) arrS[i] = 0;
+  	        	}  	        		
+  	        	int [] arr  = {0,C_SENSOR_VALS,arrS[6], -arrS[0]/100, arrS[1]/100, -arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
   	        	sendVals2(arr);
   	        }
   	    }, 0, 200);
@@ -412,9 +423,7 @@ public class ClientSocket {
 	    	  x.printStackTrace(); 
 	    	  Custom.showMessage("Socket open error");  
 	     }
-	}
-	
-	
+	}	
 	void closeSocket(){
 		int [] arr  = {0,C_STOP,0,0,0,0,0,0,0};
 		//getChars();

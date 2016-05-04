@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -15,13 +16,19 @@ public class Sensor {
     private DatagramSocket m_cNetFTSlowSocket;
     
     int vals[] = new int[6];
-    int rVals[] = new int[6];
+    int rVals[] = new int[7];
     int timeToSleep;
     float o = 0;
     float a = 0;
     float t = 0;
-    		
     
+    SimpleMatrix [] vArr = new SimpleMatrix[5];
+    
+    int [] q = new int[6];
+    		
+    public void setJ(int [] q){
+    	System.arraycopy( q, 0, this.q, 0,6 );
+    }
     public int [] getVals(){
     	int [] a = new int[6];    	
     	System.arraycopy( vals, 0, a, 0,6 );
@@ -29,8 +36,8 @@ public class Sensor {
     }
     
     public int [] getRVals(){
-    	int [] a = new int[6];    	
-    	System.arraycopy( rVals, 0, a, 0,6 );
+    	int [] a = new int[7];    	
+    	System.arraycopy( rVals, 0, a, 0,7 );
     	return a;
     }
     
@@ -40,13 +47,17 @@ public class Sensor {
     	this.t = t;
     }
     public void processRVals(){
+    	double mg = 30000;
+    	//System.out.println("Works");
     	SimpleMatrix Ms = KawasakiMatrix.getBaseModification();
-    	SimpleMatrix Mf = KawasakiMatrix.getMatrix3x3ZYZm(false, o, a, t);
+    	SimpleMatrix Mf = KawasakiMatrix.getDHM(q).extractMatrix(0, 3,0, 3);
+    	//System.out.println(Mf);
+    	//SimpleMatrix Mf = SimpleMatrix.identity(4);
     	// вычетаем из показаний датчика внутренние напряжения и силу тяжести
     	System.arraycopy( vals, 0, rVals, 0,6 );
     	rVals[0] += 12500; 
-    	rVals[2] += 21000;
-    	double v[][] = {{0},{0},{-30000}};
+    	rVals[2] += 20000;
+    	double v[][] = {{0},{0},{-mg}};
     	SimpleMatrix V = new SimpleMatrix(v);
     	SimpleMatrix M = Mf.invert();
     	V = M.mult(V);
@@ -59,9 +70,47 @@ public class Sensor {
     	V2 = Mf.mult(Ms).mult(V2);
     	for (int i=0;i<3;i++)
     		rVals[i]= (int)V2.get(i,0);
+    	// моменты
+    	rVals[3] += 340;
+    	rVals[4] += 180;
+    	rVals[5] -= 521;
+    	// посчёт момента силы тяжести
+    	double rg[][] = {{0},{0},{0.07}};
+    	SimpleMatrix Rg = new SimpleMatrix(rg); 
+    	SimpleMatrix M2 = KawasakiMatrix.getDHM(q).extractMatrix(0, 3, 0, 3);
+    	Rg = M2.mult(Rg);    	
+    	double vMg[][] = {
+    			{mg*Rg.get(1,0) - 0*Rg.get(2,0)},
+    			{0 *Rg.get(2,0) - mg*Rg.get(0,0)},
+    		 	{0 *Rg.get(0,0) - 0 *Rg.get(1,0)}
+    	};
+    	SimpleMatrix M3 = KawasakiMatrix.getDHM(q).mult(KawasakiMatrix.getBaseModification4x4());
+    	SimpleMatrix VMg = new SimpleMatrix(vMg);
+    	VMg = M3.extractMatrix(0, 3, 0, 3).invert().mult(VMg);
+    	for (int i=0;i<3;i++){
+    		rVals[i+3]+= VMg.get(i,0);
+    	}
+    	double vecM[][] = {{rVals[3]},{rVals[4]},{rVals[5]}};
+    	
+    	SimpleMatrix VecM = new SimpleMatrix(vecM);
+    	VecM = KawasakiMatrix.getBaseModification().mult(VecM);
+    	VecM = KawasakiMatrix.getCurDHMbyQ(6, q[5]).extractMatrix(0, 3, 0, 3).mult(VecM);
+    	for (int i=0;i<4;i++){
+    		vArr[i] = new SimpleMatrix(VecM); 
+    		rVals[3+i] = (int)VecM.get(2,0);
+    		VecM.set(2, 0, 0);    		
+    		VecM = KawasakiMatrix.getCurDHMbyQ(5-i, q[4-i]).extractMatrix(0, 3, 0, 3).mult(VecM);
+    	}
+    	//rVals[6] = -rVals[6];
+    	
+    	// распределение моментов по джоинтам
+    	
+    	
     }
     
-    
+    public SimpleMatrix[] getVecs(){
+    	return vArr;
+    }
     // конструктор по умолчанию   
     Sensor(){
     	m_strSensorAddress = "192.168.1.1";

@@ -8,6 +8,54 @@ public class KawasakiMatrix {
 		static final double dy= 2000;
 		static final double dz=-50000;
 		
+		static SimpleMatrix getCurDHM(double tetta, double d, double a, double alpha){
+			double dm [][]={
+					 {Math.cos(tetta), -Math.sin(tetta)*Math.cos(alpha) ,Math.sin(tetta)*Math.sin(alpha),  a*Math.cos(tetta)},				 
+			         {Math.sin(tetta),  Math.cos(tetta)*Math.cos(alpha), -Math.cos(tetta)*Math.sin(alpha), a*Math.sin(tetta)},
+			         {0,           Math.sin(alpha),            Math.cos(alpha),             d},
+			         {0 ,          0,                     0,                      1}
+			};
+			return new SimpleMatrix(dm);
+		}
+		static SimpleMatrix getCurDHMbyQ(int num,int q){
+			SimpleMatrix M = new SimpleMatrix();
+			switch (num){
+			case 0:
+			    M = getCurDHM(0,0,0,Math.PI);
+			    break;
+			case 1:
+				M = getCurDHM(Math.toRadians(q)-Math.PI/2,0,0.1,Math.PI/2);
+				break;
+			case 2:
+				M = getCurDHM(Math.toRadians(q)-Math.PI/2,0,0.45,Math.PI);
+				break;
+			case 3:
+				M = getCurDHM(Math.toRadians(q)+Math.PI/2,0,0.04,Math.PI/2);
+				break;
+			case 4:
+				M = getCurDHM(Math.toRadians(q),0.45,0,-Math.PI/2);
+				break;
+			case 5:
+				M = getCurDHM(Math.toRadians(q),0,0,Math.PI/2);
+				break;
+			case 6:
+				M = getCurDHM(Math.toRadians(q)+Math.PI/2,0.1,0,0);
+				break;
+			}
+			return M;
+		}
+		static SimpleMatrix getDHM(int q[]){
+			//System.out.println("Works");
+			SimpleMatrix M0 = getCurDHM(0,0,0,Math.PI);
+			SimpleMatrix M1 = getCurDHM(Math.toRadians(q[0])-Math.PI/2,0,0.1,Math.PI/2);
+			SimpleMatrix M2 = getCurDHM(Math.toRadians(q[1])-Math.PI/2,0,0.45,Math.PI);
+			SimpleMatrix M3 = getCurDHM(Math.toRadians(q[2])+Math.PI/2,0,0.04,Math.PI/2);
+			SimpleMatrix M4 = getCurDHM(Math.toRadians(q[3]),0.45,0,-Math.PI/2);
+			SimpleMatrix M5 = getCurDHM(Math.toRadians(q[4]),0,0,Math.PI/2);
+			SimpleMatrix M6 = getCurDHM(Math.toRadians(q[5])+Math.PI/2,0.1,0,0);
+			return M0.mult(M1).mult(M2).mult(M3).mult(M4).mult(M5).mult(M6);
+			
+		}
 		static double[] getInstrumentVector(float o, float a, float t){
 			SimpleMatrix M = getMatrix3x3ZYZm(false,o,a,t);
 			double v[][] = {{0},{0},{1}};
@@ -24,11 +72,51 @@ public class KawasakiMatrix {
 			//for (int j=0;j<3;j++)
 				//if (Math.abs(m[i][j])<0.01) 
 				//	m[i][j] = 0;
+			
+			
+		        
 			a[1] = Math.atan2(Math.sqrt(m[0][2]*m[0][2]),m[0][2])/Math.PI*180;
 			a[0] = Math.atan2(m[2][2],-m[1][2])/Math.PI*180;
 			a[2] = Math.atan2(m[0][0],-m[0][1])/Math.PI*180;
 			return a;			
 		}
+		
+		
+		static int [] parceMatrixXYZm(SimpleMatrix m){
+			double thetaX, thetaY, thetaZ = 0.0;
+		    thetaX = Math.asin(m.get(2,1));
+		    if (thetaX < (Math.PI / 2)){
+		    	if (thetaX > (-Math.PI / 2)){
+		             thetaZ = Math.atan2(-m.get(0,1), m.get(1,1));
+		             thetaY = Math.atan2(-m.get(2,0), m.get(2,2));
+		        }else{
+		             thetaZ = -Math.atan2(-m.get(0,2), m.get(0,0));
+		             thetaY = 0;
+		        }
+		    }else{
+		        thetaZ = Math.atan2(m.get(0,2), m.get(0,0));
+		        thetaY = 0;
+		    }
+
+		    int a[]={(int)(thetaX/Math.PI*180), 
+		    		 (int)(thetaY/Math.PI*180),
+		    		 (int)(thetaZ/Math.PI*180)
+		    };
+			//int [] a = new int[3];
+			//for (int i=0;i<3;i++)
+			//for (int j=0;j<3;j++)
+				//if (Math.abs(m[i][j])<0.01) 
+				//	m[i][j] = 0;
+			//a[0] = (int)(Math.atan2(m.get(2,1),m.get(2,2))/Math.PI*180);
+			//a[1] = (int)(Math.atan2(-m.get(2,0),Math.sqrt(m.get(2,1)*m.get(2,1)+m.get(2,2)*m.get(2,2)))/Math.PI*180);
+			//a[2] = (int)(Math.atan2(m.get(1,0),m.get(0,0))/Math.PI*180);
+			//for (int i=0;i<3;i++)
+			//	if(a[i]<0) a[i]+=360;
+			return a;			
+		}
+		
+		
+		
 		
 		static double [] ZYZtoXYZ(double[] angles){
 			double [][] m = getMatrix3x3ZYZd(false,angles[0],angles[1],angles[2]);
@@ -38,6 +126,8 @@ public class KawasakiMatrix {
 			double res[]=new double[3];
 			return res;
 		}
+		
+		
 		
 		// масса датчика
 		static final double mass = Math.sqrt(dx*dx+dy*dy+dz*dz);
@@ -68,11 +158,13 @@ public class KawasakiMatrix {
 			return M;
 		}
 		
-		public static SimpleMatrix getMatrix3x3XYZm(double c1, double c2, double c3){
-			double s1 = Math.sqrt(1-c1*c1);
-			double s2 = Math.sqrt(1-c2*c2);
-			double s3 = Math.sqrt(1-c3*c3);
-			
+		public static SimpleMatrix getMatrix3x3XYZm(int [] a){
+			double s1 = Math.sin(a[0]);
+			double c1 = Math.cos(a[0]);
+			double s2 = Math.sin(a[1]);
+			double c2 = Math.cos(a[1]);
+			double s3 = Math.sin(a[2]);
+			double c3 = Math.cos(a[2]);
 			double [][] m = {	
 					{ c2*c3, -c2*s3, s2},
 					{ c1*s3+c3*s1*s2, c1*c3-s1*s2*s3, -c2*s1},
@@ -86,6 +178,11 @@ public class KawasakiMatrix {
 		
 		public static SimpleMatrix getBaseModification(){
 			double [][] d = {{0,-1,0},{1,0,0},{0,0,1}};
+			return new SimpleMatrix(d);
+			
+		}
+		public static SimpleMatrix getBaseModification4x4(){
+			double [][] d = {{0,-1,0,0},{1,0,0,0},{0,0,1,0},{0,0,0,1}};
 			return new SimpleMatrix(d);
 			
 		}
@@ -152,7 +249,7 @@ public class KawasakiMatrix {
 			
 		
 				
-			System.out.println("cA: "+cA+" | "+ Math.cos(Math.toRadians(a)));
+			//System.out.println("cA: "+cA+" | "+ Math.cos(Math.toRadians(a)));
 			
 			double [][] m = {
 					{ cO*cA*cT-sO*sT, -cO*cA*sT-sO*cT, cO*sA},

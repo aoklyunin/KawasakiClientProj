@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Group;
 
 public class MainWindow {
 	
@@ -37,11 +38,31 @@ public class MainWindow {
 		setMatrix4x4();
 		setVectorVals();
 		setCam();
+		setVectors();
 		if (client.getInPosition()){
 			setSliders();
 		}
 		int pos [] = client.getPositions();
 		client.sensor.setAngles(pos[3], pos[4], pos[5]);
+	}
+	
+	public void setVectors(){
+		SimpleMatrix m [] = client.sensor.getVecs();
+		textVArr1x.setText(Math.floor(m[0].get(0,0))+"");
+		textVArr1y.setText(Math.floor(m[0].get(1,0))+"");
+		textVArr1z.setText(Math.floor(m[0].get(2,0))+"");
+		
+		textVArr2x.setText(Math.floor(m[1].get(0,0))+"");
+		textVArr2y.setText(Math.floor(m[1].get(1,0))+"");
+		textVArr2z.setText(Math.floor(m[1].get(2,0))+"");
+		
+		textVArr3x.setText(Math.floor(m[2].get(0,0))+"");
+		textVArr3y.setText(Math.floor(m[2].get(1,0))+"");
+		textVArr3z.setText(Math.floor(m[2].get(2,0))+"");
+		
+		textVArr4x.setText(Math.floor(m[3].get(0,0))+"");
+		textVArr4y.setText(Math.floor(m[3].get(1,0))+"");
+		textVArr4z.setText(Math.floor(m[3].get(2,0))+"");
 	}
 	
 	public void init(){
@@ -338,15 +359,15 @@ public class MainWindow {
 		progressBarRz.setBounds(370, 60, 182, 17);
 		
 		progressBarRMx = new ProgressBar(textJo, SWT.NONE);
-		progressBarRMx.setMaximum(200000);
+		progressBarRMx.setMaximum(20000);
 		progressBarRMx.setBounds(370, 83, 182, 17);
 		
 		progressBarRMy = new ProgressBar(textJo, SWT.NONE);
-		progressBarRMy.setMaximum(200000);
+		progressBarRMy.setMaximum(20000);
 		progressBarRMy.setBounds(370, 106, 182, 17);
 		
 		progressBarRMz = new ProgressBar(textJo, SWT.NONE);
-		progressBarRMz.setMaximum(200000);
+		progressBarRMz.setMaximum(20000);
 		progressBarRMz.setBounds(370, 129, 182, 17);
 		
 		textX = new Text(textJo, SWT.BORDER);
@@ -939,9 +960,11 @@ public class MainWindow {
 		btnStartGravity.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
+				int p =  Integer.parseInt(textSMin.getText());
+				if (!btnForces.getSelection()) p = -p;
 				client.startGravityProgram(Integer.parseInt(textKP.getText()),
 						   				   Integer.parseInt(textKI.getText()),
-						   				   Integer.parseInt(textSMin.getText()) );
+						   				   p);
 			}
 		});
 		btnStartGravity.setBounds(757, 407, 75, 25);
@@ -994,6 +1017,58 @@ public class MainWindow {
 		lblZ_2.setText("Z");
 		lblZ_2.setBounds(917, 106, 20, 15);
 		
+		progressBarRM2 = new ProgressBar(textJo, SWT.NONE);
+		progressBarRM2.setMaximum(20000);
+		progressBarRM2.setBounds(370, 152, 182, 17);
+		
+		textVArr1x = new Text(textJo, SWT.BORDER);
+		textVArr1x.setBounds(317, 430, 76, 21);
+		
+		textVArr1y = new Text(textJo, SWT.BORDER);
+		textVArr1y.setBounds(399, 430, 76, 21);
+		
+		textVArr1z = new Text(textJo, SWT.BORDER);
+		textVArr1z.setBounds(481, 430, 76, 21);
+		
+		textVArr2x = new Text(textJo, SWT.BORDER);
+		textVArr2x.setBounds(317, 457, 76, 21);
+		
+		textVArr2y = new Text(textJo, SWT.BORDER);
+		textVArr2y.setBounds(399, 457, 76, 21);
+		
+		textVArr2z = new Text(textJo, SWT.BORDER);
+		textVArr2z.setBounds(481, 457, 76, 21);
+		
+		textVArr3x = new Text(textJo, SWT.BORDER);
+		textVArr3x.setBounds(317, 485, 76, 21);
+		
+		textVArr3y = new Text(textJo, SWT.BORDER);
+		textVArr3y.setBounds(399, 485, 76, 21);
+		
+		textVArr3z = new Text(textJo, SWT.BORDER);
+		textVArr3z.setBounds(481, 485, 76, 21);
+		
+		textVArr4x = new Text(textJo, SWT.BORDER);
+		textVArr4x.setBounds(317, 512, 76, 21);
+		
+		textVArr4y = new Text(textJo, SWT.BORDER);
+		textVArr4y.setBounds(399, 512, 76, 21);
+		
+		textVArr4z = new Text(textJo, SWT.BORDER);
+		textVArr4z.setBounds(481, 512, 76, 21);
+		
+		Group grpGravity = new Group(textJo, SWT.NONE);
+		grpGravity.setText("Graviti");
+		grpGravity.setBounds(667, 478, 191, 82);
+		
+		btnForces = new Button(grpGravity, SWT.RADIO);
+		btnForces.setBounds(10, 24, 90, 16);
+		btnForces.setText("Forces");
+		
+		Button btnMomments = new Button(grpGravity, SWT.RADIO);
+		btnMomments.setBounds(10, 46, 90, 16);
+		btnMomments.setText("Momments");
+		
 
 	}
 	public void setRotations(){
@@ -1033,9 +1108,9 @@ public class MainWindow {
 														vals[0],vals[1],vals[2]);
 		double [] angles = {(double)p[3],(double)p[4],(double)p[5]};
 		double m[]= KawasakiMatrix.ZYZtoXYZ(angles);
-		textO.setText(m[0]+"");
-		textA.setText(m[1]+"");
-		textT.setText(m[2]+"");
+		//textO.setText(m[0]+"");
+		//textA.setText(m[1]+"");
+		//textT.setText(m[2]+"");
 	
     	int rVals[] = client.sensor.getRVals();	
     	
@@ -1107,6 +1182,12 @@ public class MainWindow {
 		else
         	progressBarRMz.setState(SWT.NORMAL); 
 		
+		if ( rVals[6] < 0)
+			progressBarRM2.setState(SWT.PAUSED); 
+		else
+			progressBarRM2.setState(SWT.NORMAL); 
+		
+		
 		progressBarX.setSelection(Math.abs(vals[0]));
 		progressBarY.setSelection(Math.abs(vals[1]));
 		progressBarZ.setSelection(Math.abs(vals[2]));
@@ -1120,23 +1201,50 @@ public class MainWindow {
 		progressBarRMx.setSelection(Math.abs(rVals[3]));
 		progressBarRMy.setSelection(Math.abs(rVals[4]));
 		progressBarRMz.setSelection(Math.abs(rVals[5]));
-		
+		progressBarRM2.setSelection(Math.abs(rVals[6]));
 	}
 	public void setAngleText(){
 		
 	}
 	public void setVectorVals(){
-		int [] pos = client.getPositions();
-		double [] v = KawasakiMatrix.getInstrumentVector(pos[3],pos[4],pos[5]);
-		textVx.setText(v[0]+"");
-		textVy.setText(v[1]+"");
-		textVz.setText(v[2]+"");
+		int [] r = client.getRotations();
+		SimpleMatrix M = KawasakiMatrix.getDHM(r);
+		
+		textVx.setText((int)(M.get(0,3)*1000)+"");
+		textVy.setText((int)(M.get(1,3)*1000)+"");
+		textVz.setText((int)(M.get(2,3)*1000)+"");
+		int a [] = KawasakiMatrix.parceMatrixXYZm(M);
+		
+		textO.setText(a[0]+"");
+		textA.setText(a[1]+"");
+		textT.setText(a[2]+"");
+		
+		textM11.setText(M.get(0,0)+"");
+		textM12.setText(M.get(0,1)+"");
+		textM13.setText(M.get(0,2)+"");
+		textM14.setText(M.get(0,3)+"");
+		
+		textM21.setText(M.get(1,0)+"");
+		textM22.setText(M.get(1,1)+"");
+		textM23.setText(M.get(1,2)+"");
+		textM24.setText(M.get(1,3)+"");
+		
+		textM31.setText(M.get(2,0)+"");
+		textM32.setText(M.get(2,1)+"");
+		textM33.setText(M.get(2,2)+"");
+		textM34.setText(M.get(2,3)+"");
+		
+		textM41.setText(M.get(3,0)+"");
+		textM42.setText(M.get(3,1)+"");
+		textM43.setText(M.get(3,2)+"");
+		textM44.setText(M.get(3,3)+"");
+		
 	}
 	public void setMatrix4x4(){
 		int [] pos = client.getPositions();
 	    SimpleMatrix M  = KawasakiMatrix.getMatrix3x3ZYZm(false,pos[3],pos[4],pos[5]);
-		System.out.println(M);
-		
+		//System.out.println(M);
+	/*	
 		textM11.setText(M.get(0,0)+"");
 		textM12.setText(M.get(0,1)+"");
 		textM13.setText(M.get(0,2)+"");
@@ -1158,7 +1266,7 @@ public class MainWindow {
 		textM44.setText(M.get(3,3)+"");*/
 	}
 	
-	
+	Button btnForces;
 	protected Shell textJo;
 	private Text textX;
 	private Text textY;
@@ -1299,4 +1407,17 @@ public class MainWindow {
 	private Label lblX_2;
 	private Label lblY_2;
 	private Label lblZ_2;
+	private ProgressBar progressBarRM2;
+	private Text textVArr1x;
+	private Text textVArr1y;
+	private Text textVArr1z;
+	private Text textVArr2x;
+	private Text textVArr2y;
+	private Text textVArr2z;
+	private Text textVArr3x;
+	private Text textVArr3y;
+	private Text textVArr3z;
+	private Text textVArr4x;
+	private Text textVArr4y;
+	private Text textVArr4z;
 }
