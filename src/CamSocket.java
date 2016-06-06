@@ -66,6 +66,7 @@ class CamSocket {
     int arr[]=new int[4];
     int valPos = 0;
     int [] vals= new int[6];
+    
     private void getChars(){	    
     	if (flgOpenSocket){
       	   if (!socket.isConnected()){

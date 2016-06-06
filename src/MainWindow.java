@@ -29,6 +29,9 @@ public class MainWindow {
 	boolean flgFirstPosGet = true;
 	boolean flgUseMatrix = true;
 	CamSocket camSocket;
+	Hand hand;
+	
+	int testPos = 0;
 	public void onTime(){
 		setSensorProgress();
 		setSensorText();		
@@ -39,6 +42,7 @@ public class MainWindow {
 		setVectorVals();
 		setCam();
 		setVectors();
+		setHandPowers();
 		if (client.getInPosition()){
 			setSliders();
 		}
@@ -78,7 +82,9 @@ public class MainWindow {
 		 display.timerExec(time, timer);
 		 client = new ClientSocket();
 		 camSocket = new CamSocket();
-		 client.openSocket("192.168.1.0","40000");
+		 hand = new Hand();
+		 hand.openSocket();
+		// client.openSocket("192.168.1.0","40000");
 		 //camSocket.openSocket("192.168.1.101",5005);
 		 int pos [] = client.getPositions();
 		 
@@ -311,6 +317,7 @@ public class MainWindow {
 	public void onDestroy(){
 		client.closeSocket();
 		client.close();
+		hand.closeSocket();
 		camSocket.closeSocket();
 		System.out.println("Destroyed");
 	}	
@@ -319,7 +326,7 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 		textJo = new Shell();
-		textJo.setSize(984, 638);
+		textJo.setSize(984, 737);
 		textJo.setText("SWT Application");
 		
 		progressBarX = new ProgressBar(textJo, SWT.NONE);
@@ -950,11 +957,11 @@ public class MainWindow {
 		
 		textKP = new Text(textJo, SWT.BORDER);
 		textKP.setText("5");
-		textKP.setBounds(694, 408, 47, 17);
+		textKP.setBounds(611, 409, 47, 17);
 		
 		textKI = new Text(textJo, SWT.BORDER);
 		textKI.setText("5");
-		textKI.setBounds(694, 430, 47, 17);
+		textKI.setBounds(611, 430, 47, 17);
 		
 		Button btnStartGravity = new Button(textJo, SWT.NONE);
 		btnStartGravity.addSelectionListener(new SelectionAdapter() {
@@ -967,7 +974,7 @@ public class MainWindow {
 						   				   p);
 			}
 		});
-		btnStartGravity.setBounds(757, 407, 75, 25);
+		btnStartGravity.setBounds(662, 407, 75, 25);
 		btnStartGravity.setText("Start Gravity");
 		
 		Button btnStopGravity = new Button(textJo, SWT.NONE);
@@ -977,24 +984,24 @@ public class MainWindow {
 				client.stopGravityProgram();
 			}
 		});
-		btnStopGravity.setBounds(757, 436, 75, 25);
+		btnStopGravity.setBounds(664, 436, 75, 25);
 		btnStopGravity.setText("Stop Gravity");
 		
 		Label lblKp = new Label(textJo, SWT.NONE);
 		lblKp.setText("Kp");
-		lblKp.setBounds(662, 407, 20, 15);
+		lblKp.setBounds(592, 407, 20, 15);
 		
 		Label lblKi = new Label(textJo, SWT.NONE);
 		lblKi.setText("Ki");
-		lblKi.setBounds(662, 430, 20, 15);
+		lblKi.setBounds(592, 433, 20, 15);
 		
 		textSMin = new Text(textJo, SWT.BORDER);
 		textSMin.setText("65");
-		textSMin.setBounds(694, 454, 47, 17);
+		textSMin.setBounds(611, 457, 47, 17);
 		
 		Label lblSmin = new Label(textJo, SWT.NONE);
 		lblSmin.setText("Smin");
-		lblSmin.setBounds(648, 456, 34, 15);
+		lblSmin.setBounds(576, 460, 34, 15);
 		
 		textVx = new Text(textJo, SWT.BORDER);
 		textVx.setBounds(824, 129, 34, 17);
@@ -1059,7 +1066,7 @@ public class MainWindow {
 		
 		Group grpGravity = new Group(textJo, SWT.NONE);
 		grpGravity.setText("Graviti");
-		grpGravity.setBounds(667, 478, 191, 82);
+		grpGravity.setBounds(749, 407, 191, 82);
 		
 		btnForces = new Button(grpGravity, SWT.RADIO);
 		btnForces.setBounds(10, 24, 90, 16);
@@ -1068,6 +1075,121 @@ public class MainWindow {
 		Button btnMomments = new Button(grpGravity, SWT.RADIO);
 		btnMomments.setBounds(10, 46, 90, 16);
 		btnMomments.setText("Momments");
+		
+		Button btnTest = new Button(textJo, SWT.NONE);
+		btnTest.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				client.processTest(testPos);
+				testPos++;
+				if(testPos>2) testPos=0;
+			}
+		});
+		btnTest.setBounds(725, 346, 75, 25);
+		btnTest.setText("Test");
+		
+		Button btnTest_1 = new Button(textJo, SWT.NONE);
+		btnTest_1.setBounds(824, 346, 75, 25);
+		btnTest_1.setText("Test 2");
+		
+		hCoordEdit2 = new Text(textJo, SWT.BORDER);
+		hCoordEdit2.setText("0");
+		hCoordEdit2.setBounds(625, 512, 53, 17);
+		
+		hCoordEdit3 = new Text(textJo, SWT.BORDER);
+		hCoordEdit3.setText("0");
+		hCoordEdit3.setBounds(625, 539, 53, 17);
+		
+		hCoordEdit4 = new Text(textJo, SWT.BORDER);
+		hCoordEdit4.setText("0");
+		hCoordEdit4.setBounds(625, 562, 53, 17);
+		
+		hCoordEdit5 = new Text(textJo, SWT.BORDER);
+		hCoordEdit5.setText("0");
+		hCoordEdit5.setBounds(625, 588, 53, 17);
+		
+		hCoordEdit6 = new Text(textJo, SWT.BORDER);
+		hCoordEdit6.setText("0");
+		hCoordEdit6.setBounds(625, 615, 53, 17);
+		
+		hCoordEdit1 = new Text(textJo, SWT.BORDER);
+		hCoordEdit1.setText("0");
+		hCoordEdit1.setBounds(625, 485, 53, 17);
+		
+		hCoordEdit7 = new Text(textJo, SWT.BORDER);
+		hCoordEdit7.setText("0");
+		hCoordEdit7.setBounds(625, 638, 53, 17);
+		
+		Button button = new Button(textJo, SWT.NONE);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				int [] params = {
+					Integer.parseInt(hCoordEdit1.getText()),
+					Integer.parseInt(hCoordEdit2.getText()),
+					Integer.parseInt(hCoordEdit3.getText()),
+					Integer.parseInt(hCoordEdit4.getText()),
+					Integer.parseInt(hCoordEdit5.getText()),
+					Integer.parseInt(hCoordEdit6.getText()),
+					Integer.parseInt(hCoordEdit7.getText()),
+				};
+				hand.sendCommand(1, params);
+			}
+		});
+		button.setBounds(740, 510, 75, 25);
+		button.setText("\u0412 \u0442\u043E\u0447\u043A\u0443");
+		
+		Label hCoordLable1 = new Label(textJo, SWT.NONE);
+		hCoordLable1.setBounds(686, 485, 55, 15);
+		hCoordLable1.setText("0");
+		
+		Label hCoordLable2 = new Label(textJo, SWT.NONE);
+		hCoordLable2.setText("0");
+		hCoordLable2.setBounds(686, 512, 28, 15);
+		
+		Label hCoordLable3 = new Label(textJo, SWT.NONE);
+		hCoordLable3.setText("0");
+		hCoordLable3.setBounds(686, 539, 55, 15);
+		
+		Label hCoordLable4 = new Label(textJo, SWT.NONE);
+		hCoordLable4.setText("0");
+		hCoordLable4.setBounds(684, 564, 55, 15);
+		
+		Label hCoordLable5 = new Label(textJo, SWT.NONE);
+		hCoordLable5.setText("0");
+		hCoordLable5.setBounds(684, 590, 55, 15);
+		
+		Label hCoordLable6 = new Label(textJo, SWT.NONE);
+		hCoordLable6.setText("0");
+		hCoordLable6.setBounds(684, 617, 55, 15);
+		
+		Label hCoordLable7 = new Label(textJo, SWT.NONE);
+		hCoordLable7.setText("0");
+		hCoordLable7.setBounds(686, 641, 55, 15);
+		
+		hPow1 = new Label(textJo, SWT.NONE);
+		hPow1.setText("0");
+		hPow1.setBounds(578, 512, 41, 15);
+		
+		hPow2 = new Label(textJo, SWT.NONE);
+		hPow2.setText("0");
+		hPow2.setBounds(576, 539, 41, 15);
+		
+		hPow3 = new Label(textJo, SWT.NONE);
+		hPow3.setText("0");
+		hPow3.setBounds(578, 564, 41, 15);
+		
+		hPow4 = new Label(textJo, SWT.NONE);
+		hPow4.setText("0");
+		hPow4.setBounds(576, 588, 41, 15);
+		
+		hPow5 = new Label(textJo, SWT.NONE);
+		hPow5.setText("0");
+		hPow5.setBounds(576, 615, 41, 15);
+		
+		hPow6 = new Label(textJo, SWT.NONE);
+		hPow6.setText("0");
+		hPow6.setBounds(576, 638, 41, 15);
 		
 
 	}
@@ -1099,6 +1221,17 @@ public class MainWindow {
 		textCam5.setText(vals[4]+"");
 		textCam6.setText(vals[5]+"");
 	}
+	
+	public void setHandPowers(){
+		float[] powers = hand.getPowers();
+		hPow1.setText(powers[0]+"");
+		hPow2.setText(powers[1]+"");
+		hPow3.setText(powers[2]+"");		
+		hPow4.setText(powers[3]+"");
+		hPow5.setText(powers[4]+"");
+		hPow6.setText(powers[5]+"");
+	}
+	
 	public void setSensorText(){
 		int vals[] = client.getSensorVals();
 		
@@ -1420,4 +1553,17 @@ public class MainWindow {
 	private Text textVArr4x;
 	private Text textVArr4y;
 	private Text textVArr4z;
+	private Text hCoordEdit2;
+	private Text hCoordEdit3;
+	private Text hCoordEdit4;
+	private Text hCoordEdit5;
+	private Text hCoordEdit6;
+	private Text hCoordEdit1;
+	private Text hCoordEdit7;
+	private Label hPow1;
+	private Label hPow2;
+	private Label hPow3;
+	private Label hPow4;
+	private Label hPow5;
+	private Label hPow6;
 }

@@ -45,7 +45,7 @@ public class ClientSocket {
 	final static int C_GRAVITY_PROGRAM_OFF = 20; // программа гравитации
 	final static int C_U_REGULATOR = 21; // выход компонент регул€тора
 	final static int C_ERR_REGULATOR = 22; // ошибки: интегральна€ и пропорциональна€
-	
+	final static int C_CHANGE_GRAVITY_MODE = 25; // изменени€ режима гравити контролла
 	final static int ERR_INRANGE_J1 = 1; //до джоинта 1 не достать
 	final static int ERR_INRANGE_J2 = 2; //до джоинта 2 не достать
 	final static int ERR_INRANGE_J3 = 4; //до джоинта 3 не достать
@@ -55,6 +55,7 @@ public class ClientSocket {
 	final static int ERR_NOT_INRANGE = 32786; //вне дос€гаемости
 	final static int C_SET_PARAMS = 23; // параметры гравитации
 	final static int C_IN_POS = 24; // дошЄл до позиции
+	final static int C_POWER_LOG = 26; // лог управлени€ по силам
 	
 	final static int X_COORD = 0;
 	final static int Y_COORD = 1;
@@ -68,6 +69,7 @@ public class ClientSocket {
 	double d3 = 450;
 	double d4 = 100;
 	double d5 = 10;
+	FileWriter outF;
 	
 	final static int[] ULIMIMT = { 160,  140,  120,  270,  145,  360};
 	final static int[] LLIMIMT = {-160, -105, -155, -270, -145, -360};
@@ -113,6 +115,28 @@ public class ClientSocket {
     
     PrintWriter writer;
     boolean flgOpenLog = false;
+    
+    public void processTest(int testPos){
+    	switch(testPos){
+    	case 0:
+    		setParams(10,10,15,100,10,10);
+    		runInPointA(-27, 20, -73, 181, 77, -10, 0);    		
+    		break;    			
+    	case 1:
+    		setParams(10,10,3,100,10,10);
+    		runInPointA(-135, 20, -73, 181, 77, -10, 0);
+    		setParams(10,10,5,100,10,10);
+    		runInPointA(-135, 82, -14, 181, 77, -10, 0);
+    		break;    		
+    	case 2:
+    		setParams(10,10,10,100,10,10);    		
+    		runInPointA(-135, 18, -36, 181, 77, -10, 0);
+    		runInPointA(40, 40, -36, 181, 77, -10, 0);
+    		runInPointA(40, 81, -19, 181, 77, -10, 0);  
+    		break;
+    	
+    	}
+    }
     public void openLog(String path){
     	try{
     		writer = new PrintWriter(new File(path));
@@ -227,8 +251,8 @@ public class ClientSocket {
       	   try {
       		   if(flgOpenSocket){ 	        			  
       			   while(in.available()!=0){	
-      				   char c = (char)in.readByte();
-      				   
+      				 
+      				   char c = (char)in.readByte();      				   
       				   if (c==' '){
       					   if (!flgSpace&&!flgFirstSpace){
       						   pos++;
@@ -266,6 +290,25 @@ public class ClientSocket {
       							   		case C_IN_POS:
       							   			flgInPosition = true;
       							   			break;
+      							   			
+      							   		case C_POWER_LOG:
+      							   			switch (lst[2]){ 
+      							   				case 0:
+      							   					for (int i=0;i<5;i++)
+      							   						outF.write(lst[i+2]+" ");      					          
+      							   					break;
+      							   				case 1:			
+      							   					for (int i=0;i<5;i++)
+      							   						outF.write(lst[i+2]+" ");     					          
+      							   					break;
+      							   				case 2:
+      							   					for (int i=0;i<5;i++)
+      							   						outF.write(lst[i+2]+" ");     					          
+      							   					outF.append('\n');      						            
+      							   					outF.flush();
+      							   					break;
+      							   			}
+      						                break;      						         
       							   }
       							   pos = 0;
       						   }
@@ -293,6 +336,8 @@ public class ClientSocket {
     	}
     }
     boolean flgCom = false;
+    int cntEnabled = 0;
+    final int MAX_POWER_VAL = 10000;
     public ClientSocket() {
     	sensor = new Sensor();
     	sensor.start(100);
@@ -315,16 +360,41 @@ public class ClientSocket {
   	        		if (Math.abs(arrS[i])>Math.abs(arrS[max]))
   	        			max = i;       			
   	        	}
-  	        	for (int i=3;i<7;i++){
-  	        		if(i!=max) arrS[i] = 0;
-  	        	}  	        		
-  	        	int [] arr  = {0,C_SENSOR_VALS,arrS[6], -arrS[0]/100, arrS[1]/100, -arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
+  	        	//for (int i=3;i<7;i++){
+  	        	//	if(i!=max) arrS[i] = 0;
+  	        	//}  	    
+  	        	boolean flgE = false;
+  	        	for (int i=0;i<3;i++){
+  	        		if (arrS[i]>MAX_POWER_VAL)
+  	        			flgE = true;
+  	        	}
+  	        	if (flgE){
+  	        		cntEnabled++;  	        		
+  	        	}else{
+  	        		if (cntEnabled<6&&cntEnabled>0){
+  	        			System.out.println(arrS[0]+" "+arrS[1]+" "+arrS[2]);
+  	        			//sendChangeGravity();
+  	        		}
+  	        		cntEnabled = 0;
+  	        	}
+  	        	int [] arr  = {0,C_SENSOR_VALS,0, -arrS[0]/100, arrS[1]/100, -arrS[2]/100, arrS[3]/100, arrS[4]/100, arrS[5]/100};   
   	        	sendVals2(arr);
   	        }
-  	    }, 0, 200);
+  	    }, 0, 50);
+    	try {
+			outF = new FileWriter("C:\\Programming\\Kawasaki\\log\\notes3.txt", false);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         
 	}
 	
-	
+	void sendChangeGravity(){
+		
+		int [] arr  = {0,C_CHANGE_GRAVITY_MODE,0,0,0,0,0,0,0};
+		sendVals2(arr);
+	}
     void close(){
     	sensor.stop();
     }
@@ -441,7 +511,12 @@ public class ClientSocket {
 		}
 		flgOpenSocket = false;
 		Custom.showMessage("Socket closed");
-		
+		try {
+			outF.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 	}
 	public void addJPoint(int j1,int j2,int j3,int j4,int j5,int j6,String type,int speed){
 		if (speed<=0) speed = 1;
